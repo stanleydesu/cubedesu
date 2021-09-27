@@ -62,6 +62,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "cubedesu"
+version = "0.1.0"
+dependencies = [
+ "draw",
+]
+
+[[package]]
 name = "draw"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -88,13 +95,6 @@ dependencies = [
  "cfg-if",
  "libc",
  "wasi",
-]
-
-[[package]]
-name = "hello_world"
-version = "0.1.0"
-dependencies = [
- "draw",
 ]
 
 [[package]]

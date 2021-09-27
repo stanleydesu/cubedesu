@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use crate::{Face, Face::*};
 
 const ORDERED_FACES: [Face; 6] = [U, R, F, D, L, B];
@@ -22,6 +24,19 @@ impl FaceletModel {
 impl PartialEq for FaceletModel {
     fn eq(&self, other: &Self) -> bool {
         self.0.iter().eq(other.0.iter())
+    }
+}
+
+impl Index<usize> for FaceletModel {
+    type Output = Face;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IndexMut<usize> for FaceletModel {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
     }
 }
 
