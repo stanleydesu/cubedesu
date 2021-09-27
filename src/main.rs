@@ -49,20 +49,16 @@ fn main() {
             for j in col..=(col + 2) {
                 let color = face_to_color(cube[index]);
                 index += 1;
-                let sticker = Drawing::new()
-                    .with_shape(Shape::Rectangle {
-                        width: sticker_len,
-                        height: sticker_len,
-                    })
-                    .with_xy((j * sticker_len) as f32, (i * sticker_len) as f32)
-                    .with_style(Style::filled(color));
-                let border = Drawing::new()
-                    .with_shape(Shape::Rectangle {
-                        width: sticker_len,
-                        height: sticker_len,
-                    })
-                    .with_xy((j * sticker_len) as f32, (i * sticker_len) as f32)
-                    .with_style(Style::stroked(2, Color::black()));
+                let create_rect = || {
+                    Drawing::new()
+                        .with_shape(Shape::Rectangle {
+                            width: sticker_len,
+                            height: sticker_len,
+                        })
+                        .with_xy((j * sticker_len) as f32, (i * sticker_len) as f32)
+                };
+                let sticker = create_rect().with_style(Style::filled(color));
+                let border = create_rect().with_style(Style::stroked(2, Color::black()));
                 canvas.display_list.add(sticker);
                 canvas.display_list.add(border);
             }
