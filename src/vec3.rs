@@ -86,7 +86,7 @@ impl Mul<Self> for Vec3 {
 impl Mul<i8> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: i8) -> Self {
-        Self::new(self.x * rhs, self.y * rhs, self.z * rhs)
+        self * Self::new(rhs, rhs, rhs)
     }
 }
 
