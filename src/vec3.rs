@@ -1,46 +1,38 @@
 use std::{
     fmt,
-    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub},
+    ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub},
 };
 
 // specialised vec3 for i8 only (-128..128)
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Vec3([i8; 3]);
+pub struct Vec3 {
+    pub x: i8,
+    pub y: i8,
+    pub z: i8,
+}
 
 impl Vec3 {
     pub fn new(x: i8, y: i8, z: i8) -> Self {
-        Self([x, y, z])
+        Self { x, y, z }
     }
 
     pub fn zero() -> Self {
         Self::new(0, 0, 0)
     }
 
-    pub fn x(&self) -> i8 {
-        self.0[0]
-    }
-
-    pub fn y(&self) -> i8 {
-        self.0[1]
-    }
-
-    pub fn z(&self) -> i8 {
-        self.0[2]
-    }
-
-    pub fn length_squared(&self) -> i8 {
-        Self::dot(*self, *self)
+    pub fn length_squared(self) -> i8 {
+        Self::dot(self, self)
     }
 
     pub fn dot(lhs: Self, rhs: Self) -> i8 {
-        lhs.x() * rhs.x() + lhs.y() * rhs.y() + lhs.z() * rhs.z()
+        lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z
     }
 
     pub fn cross(lhs: Self, rhs: Self) -> Self {
         Self::new(
-            lhs.y() * rhs.z() - lhs.z() * rhs.y(),
-            lhs.z() * rhs.x() - lhs.x() * rhs.z(),
-            lhs.x() * rhs.y() - lhs.y() * rhs.x(),
+            lhs.y * rhs.z - lhs.z * rhs.y,
+            lhs.z * rhs.x - lhs.x * rhs.z,
+            lhs.x * rhs.y - lhs.y * rhs.x,
         )
     }
 }
@@ -48,20 +40,7 @@ impl Vec3 {
 impl Neg for Vec3 {
     type Output = Self;
     fn neg(self) -> Self::Output {
-        Self::new(-self.x(), -self.y(), -self.z())
-    }
-}
-
-impl Index<usize> for Vec3 {
-    type Output = i8;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
-impl IndexMut<usize> for Vec3 {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
+        Self::new(-self.x, -self.y, -self.z)
     }
 }
 
@@ -79,14 +58,14 @@ impl MulAssign<i8> for Vec3 {
 
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} {}", self.x(), self.y(), self.z())
+        write!(f, "{} {} {}", self.x, self.y, self.z)
     }
 }
 
 impl Add for Vec3 {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        Self::new(self.x() + rhs.x(), self.y() + rhs.y(), self.z() + rhs.z())
+        Self::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
@@ -100,14 +79,14 @@ impl Sub for Vec3 {
 impl Mul<Self> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
-        Self::new(self.x() * rhs.x(), self.y() * rhs.y(), self.z() * rhs.z())
+        Self::new(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
     }
 }
 
 impl Mul<i8> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: i8) -> Self {
-        Self::new(self.x() * rhs, self.y() * rhs, self.z() * rhs)
+        Self::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
@@ -162,17 +141,12 @@ mod tests {
     proptest! {
         #[test]
         fn new_constructs_with_parameters(x in any_i8(), y in any_i8(), z in any_i8()) {
-            prop_assert_eq!(Vec3::new(x, y, z).0, [x, y, z]);
+            prop_assert_eq!(Vec3::new(x, y, z), Vec3 { x, y, z });
         }
 
         #[test]
         fn zero_creates_zero_vector(x in 0..=0i8, y in 0..=0i8, z in 0..=0i8) {
-            prop_assert_eq!(Vec3::zero().0, [x, y, z]);
-        }
-
-        #[test]
-        fn xyz_accesses_vec(v in any_vec3()) {
-            prop_assert_eq!([v.x(), v.y(), v.z()], v.0);
+            prop_assert_eq!(Vec3::zero(), Vec3 { x, y, z });
         }
 
         #[test]
@@ -182,21 +156,7 @@ mod tests {
 
         #[test]
         fn neg_op_negates_vec(v in arb_vec3()) {
-            prop_assert_eq!((-v).0, [-v.x(), -v.y(), -v.z()]);
-        }
-
-        #[test]
-        fn valid_subscript_indexes_vec(v in any_vec3()) {
-            prop_assert_eq!([v[0], v[1], v[2]], v.0);
-        }
-
-        #[test]
-        fn valid_mut_subscript_mutates_vec(x in arb_i8(), y in arb_i8(), z in arb_i8()) {
-            let mut v = Vec3::zero();
-            v[0] = x;
-            v[1] = y;
-            v[2] = z;
-            prop_assert_eq!([v[0], v[1], v[2]], [x, y, z]);
+            prop_assert_eq!(-v, Vec3::new(-v.x, -v.y, -v.z));
         }
 
         #[test]
@@ -216,7 +176,7 @@ mod tests {
 
         #[test]
         fn add_op_correct(v1 in arb_vec3(), v2 in arb_vec3()) {
-            let expected = Vec3::new(v1.x() + v2.x(), v1.y() + v2.y(), v1.z() + v2.z());
+            let expected = Vec3::new(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
             prop_assert_eq!(v1 + v2, expected);
         }
 
@@ -227,7 +187,7 @@ mod tests {
 
         #[test]
         fn sub_op_correct(v1 in arb_vec3(), v2 in arb_vec3()) {
-            let expected = Vec3::new(v1.x() - v2.x(), v1.y() - v2.y(), v1.z() - v2.z());
+            let expected = Vec3::new(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
             prop_assert_eq!(v1 - v2, expected);
         }
 
@@ -247,18 +207,22 @@ mod tests {
         }
 
         #[test]
-        fn mul_vec3s_associative(v1 in gen_vec3(-5, 5), v2 in gen_vec3(-5, 5), v3 in gen_vec3(-5, 5)) {
+        fn mul_vec3s_associative(v1 in gen_vec3(-5, 5),
+                                 v2 in gen_vec3(-5, 5),
+                                 v3 in gen_vec3(-5, 5)) {
             prop_assert_eq!((v1 * v2) * v3, v1 * (v2 * v3));
         }
 
         #[test]
-        fn mul_vec3s_distributive(v1 in gen_vec3(-5, 5), v2 in gen_vec3(-5, 5), v3 in gen_vec3(-5, 5)) {
+        fn mul_vec3s_distributive(v1 in gen_vec3(-5, 5),
+                                  v2 in gen_vec3(-5, 5),
+                                  v3 in gen_vec3(-5, 5)) {
             prop_assert_eq!(v1 * (v2 + v3), (v1 * v2) + (v1 * v3));
         }
 
         #[test]
         fn mul_vec3s_correct(v1 in arb_vec3(), v2 in arb_vec3()) {
-            let expected = Vec3::new(v1.x() * v2.x(), v1.y() * v2.y(), v1.z() * v2.z());
+            let expected = Vec3::new(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
             prop_assert_eq!(v1 * v2, expected);
         }
 
@@ -279,19 +243,19 @@ mod tests {
 
         #[test]
         fn mul_scalar_correct(v in arb_vec3(), scalar in arb_i8()) {
-            let expected = Vec3::new(v.x() * scalar, v.y() * scalar, v.z() * scalar);
+            let expected = Vec3::new(v.x * scalar, v.y * scalar, v.z * scalar);
             prop_assert_eq!(v * scalar, expected);
         }
 
         #[test]
         fn length_squared_correct(v in gen_vec3(-6, 6)) {
-            let expected = v.x() * v.x() + v.y() * v.y() + v.z() * v.z();
+            let expected = v.x * v.x + v.y * v.y + v.z * v.z;
             prop_assert_eq!(v.length_squared(), expected);
         }
 
         #[test]
         fn display_correct(v in any_vec3()) {
-            let expected = format!("{} {} {}", v.x(), v.y(), v.z());
+            let expected = format!("{} {} {}", v.x, v.y, v.z);
             assert_eq!(format!("{}", v), expected);
         }
 
@@ -302,16 +266,16 @@ mod tests {
 
         #[test]
         fn dot_product_correct(v1 in gen_vec3(-6, 6), v2 in gen_vec3(-6, 6)) {
-            let expected = v1.x() * v2.x() + v1.y() * v2.y() + v1.z() * v2.z();
+            let expected = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
             assert_eq!(Vec3::dot(v1, v2), expected);
         }
 
         #[test]
-        fn cross_product_correct(v1 in gen_vec3(-8, 8), v2 in gen_vec3(-8, 8)) {
+        fn cross_product_correct(v1 in gen_vec3(-7, 7), v2 in gen_vec3(-7, 7)) {
             let expected = Vec3::new(
-                v1.y() * v2.z() - v1.z() * v2.y(),
-                v1.z() * v2.x() - v1.x() * v2.z(),
-                v1.x() * v2.y() - v1.y() * v2.x(),
+                v1.y * v2.z - v1.z * v2.y,
+                v1.z * v2.x - v1.x * v2.z,
+                v1.x * v2.y - v1.y * v2.x,
             );
             prop_assert_eq!(Vec3::cross(v1, v2), expected);
         }
