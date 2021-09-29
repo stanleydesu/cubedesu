@@ -11,12 +11,12 @@ pub struct FaceletModel([Face; TOTAL_STICKERS]);
 
 impl FaceletModel {
     pub fn default_facelet() -> Self {
-        let mut stickers = [Face::U; TOTAL_STICKERS];
+        let mut stickers = [U; TOTAL_STICKERS];
         let v: Vec<Face> = ORDERED_FACES
             .iter()
             .flat_map(|&face| [face; STICKERS_PER_FACE])
             .collect();
-        stickers.copy_from_slice(&v.as_slice());
+        stickers.copy_from_slice(v.as_slice());
         Self(stickers)
     }
 }
