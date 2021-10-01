@@ -150,12 +150,12 @@ mod tests {
         }
 
         #[test]
-        fn neg_op_idempotent(v in arb_vec3()) {
+        fn neg_op_idempotent(v in gen_vec3(-i8::MAX, i8::MAX)) {
             prop_assert_eq!(v, --v);
         }
 
         #[test]
-        fn neg_op_negates_vec(v in arb_vec3()) {
+        fn neg_op_negates_vec(v in gen_vec3(-i8::MAX, i8::MAX)) {
             prop_assert_eq!(-v, Vec3::new(-v.x, -v.y, -v.z));
         }
 
