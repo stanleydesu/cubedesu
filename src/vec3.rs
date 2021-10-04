@@ -70,9 +70,9 @@ impl Vec3 {
     /// If n_turns is negative, then it does abs(n_turns) anticlockwise turns.
     /// e.g. (1,0,0) (unit x axis vec) rotated upon the z-axis with n_turns = 1
     /// would resulting in (0,-1,0)
-    pub fn rotate_around_axis(self, axis: Axis, mut n_turns: i8) -> Self {
+    pub fn rotate_around_axis(v: Vec3, axis: Axis, mut n_turns: i8) -> Self {
         if n_turns == 0 {
-            return self;
+            return v;
         }
         // simplify n_turns to 0..=3, e.g. -1 is converted to 3
         n_turns = n_turns % 4;
@@ -95,7 +95,7 @@ impl Vec3 {
         let rot_z = Matrix3::new(Vec3::new(c, -s, 0), Vec3::new(s, c, 0), Vec3::new(0, 0, 1));
 
         let rot_axis = [rot_x, rot_y, rot_z][axis as usize];
-        rot_axis * self
+        rot_axis * v
     }
 }
 
@@ -206,33 +206,44 @@ mod tests {
         // should result in unit vec on y axis
         let v = Vec3::new(0, 0, 1);
         let axis = Axis::X;
-        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(0, 1, 0));
-        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(0, 0, -1));
-        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(0, -1, 0));
-        assert_eq!(v.rotate_around_axis(axis, 4), v);
-        assert_eq!(v.rotate_around_axis(axis, 0), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 1), Vec3::new(0, 1, 0));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -3), Vec3::new(0, 1, 0));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 2), Vec3::new(0, 0, -1));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -2), Vec3::new(0, 0, -1));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 3), Vec3::new(0, -1, 0));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -1), Vec3::new(0, -1, 0));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 4), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -4), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 0), v);
     }
 
     #[test]
     fn rotation_y() {
         let v = Vec3::new(3, 2, 2);
         let axis = Axis::Y;
-        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(-2, 2, 3));
-        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(-3, 2, -2));
-        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(2, 2, -3));
-        assert_eq!(v.rotate_around_axis(axis, 4), v);
-        assert_eq!(v.rotate_around_axis(axis, 0), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 1), Vec3::new(-2, 2, 3));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -3), Vec3::new(-2, 2, 3));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 2), Vec3::new(-3, 2, -2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -2), Vec3::new(-3, 2, -2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 3), Vec3::new(2, 2, -3));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -1), Vec3::new(2, 2, -3));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 4), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -4), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 0), v);
     }
 
     #[test]
     fn rotation_z() {
         let v = Vec3::new(2, 3, 2);
         let axis = Axis::Z;
-        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(3, -2, 2));
-        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(-2, -3, 2));
-        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(-3, 2, 2));
-        assert_eq!(v.rotate_around_axis(axis, 4), v);
-        assert_eq!(v.rotate_around_axis(axis, 0), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 1), Vec3::new(3, -2, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -3), Vec3::new(3, -2, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 2), Vec3::new(-2, -3, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -2), Vec3::new(-2, -3, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 3), Vec3::new(-3, 2, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, -1), Vec3::new(-3, 2, 2));
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 4), v);
+        assert_eq!(Vec3::rotate_around_axis(v, axis, 0), v);
     }
 
     proptest! {
