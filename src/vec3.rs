@@ -3,7 +3,36 @@ use std::{
     ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub},
 };
 
-// specialised vec3 for i8 only (-128..128)
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+struct Matrix3([Vec3; 3]);
+
+impl Matrix3 {
+    /// constructs a 3x3 matrix, where r1, r2, and r3 are rows 1, 2, and 3
+    /// of the matrix respectively
+    pub fn new(r1: Vec3, r2: Vec3, r3: Vec3) -> Self {
+        Self([r1, r2, r3])
+    }
+}
+
+impl Mul<Vec3> for Matrix3 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        Vec3::new(
+            Vec3::dot(self.0[0], rhs),
+            Vec3::dot(self.0[1], rhs),
+            Vec3::dot(self.0[2], rhs),
+        )
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+/// specialised vec3 for i8 only (-128..128)
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Vec3 {
     pub x: i8,
@@ -34,6 +63,12 @@ impl Vec3 {
             lhs.z * rhs.x - lhs.x * rhs.z,
             lhs.x * rhs.y - lhs.y * rhs.x,
         )
+    }
+
+    /// returns the vector rotated upon the specified axis by
+    /// n_turns 90-degree clockwise turns
+    pub fn rotate_around_axis(self, axis: Axis, n_turns: u8) -> Self {
+        self
     }
 }
 
@@ -135,6 +170,20 @@ mod tests {
         // custom vec3 where x, y, z values range from min to max (inclusive)
         pub fn gen_vec3(min: i8, max: i8)(x in min..=max, y in min..=max, z in min..=max) -> Vec3 {
             Vec3::new(x, y, z)
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn matrix_mult(v1 in gen_vec3(-5, 5),
+                       v2 in gen_vec3(-5, 5),
+                       v3 in gen_vec3(-5, 5),
+                       vec in gen_vec3(-5, 5)) {
+            let product = Matrix3::new(v1, v2, v3) * vec;
+            let expected = Vec3::new(Vec3::dot(v1, vec),
+                                     Vec3::dot(v2, vec),
+                                     Vec3::dot(v3, vec));
+            prop_assert_eq!(product, expected);
         }
     }
 
