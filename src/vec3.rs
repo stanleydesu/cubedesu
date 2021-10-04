@@ -65,10 +65,37 @@ impl Vec3 {
         )
     }
 
-    /// returns the vector rotated upon the specified axis by
-    /// n_turns 90-degree clockwise turns
-    pub fn rotate_around_axis(self, axis: Axis, n_turns: u8) -> Self {
-        self
+    /// Returns the vector rotated upon the specified axis by
+    /// n_turns 90-degree clockwise turns.
+    /// If n_turns is negative, then it does abs(n_turns) anticlockwise turns.
+    /// e.g. (1,0,0) (unit x axis vec) rotated upon the z-axis with n_turns = 1
+    /// would resulting in (0,-1,0)
+    pub fn rotate_around_axis(self, axis: Axis, mut n_turns: i8) -> Self {
+        if n_turns == 0 {
+            return self;
+        }
+        // simplify n_turns to 0..=3, e.g. -1 is converted to 3
+        n_turns = n_turns % 4;
+        // since normal rotation maths gives anticlockwise, do this for clockwise
+        n_turns *= -1;
+        if n_turns < 0 {
+            n_turns = 4 + n_turns;
+        }
+
+        // values of cos and sin at 90 degree intervals (have integer values),
+        // eg cos_vals[i] equals cos(90 * i), sin_vals[i] = sin(90 * i)
+        let cos_vals = [1, 0, -1, 0];
+        let sin_vals = [0, 1, 0, -1];
+        let c = cos_vals[n_turns as usize];
+        let s = sin_vals[n_turns as usize];
+
+        // rotation matrices for rotating around x, y and z axes respectively
+        let rot_x = Matrix3::new(Vec3::new(1, 0, 0), Vec3::new(0, c, -s), Vec3::new(0, s, c));
+        let rot_y = Matrix3::new(Vec3::new(c, 0, s), Vec3::new(0, 1, 0), Vec3::new(-s, 0, c));
+        let rot_z = Matrix3::new(Vec3::new(c, -s, 0), Vec3::new(s, c, 0), Vec3::new(0, 0, 1));
+
+        let rot_axis = [rot_x, rot_y, rot_z][axis as usize];
+        rot_axis * self
     }
 }
 
@@ -171,6 +198,41 @@ mod tests {
         pub fn gen_vec3(min: i8, max: i8)(x in min..=max, y in min..=max, z in min..=max) -> Vec3 {
             Vec3::new(x, y, z)
         }
+    }
+
+    #[test]
+    fn rotation_x() {
+        // unit vec on z axis rotated 90 degrees around the x axis
+        // should result in unit vec on y axis
+        let v = Vec3::new(0, 0, 1);
+        let axis = Axis::X;
+        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(0, 1, 0));
+        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(0, 0, -1));
+        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(0, -1, 0));
+        assert_eq!(v.rotate_around_axis(axis, 4), v);
+        assert_eq!(v.rotate_around_axis(axis, 0), v);
+    }
+
+    #[test]
+    fn rotation_y() {
+        let v = Vec3::new(3, 2, 2);
+        let axis = Axis::Y;
+        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(-2, 2, 3));
+        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(-3, 2, -2));
+        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(2, 2, -3));
+        assert_eq!(v.rotate_around_axis(axis, 4), v);
+        assert_eq!(v.rotate_around_axis(axis, 0), v);
+    }
+
+    #[test]
+    fn rotation_z() {
+        let v = Vec3::new(2, 3, 2);
+        let axis = Axis::Z;
+        assert_eq!(v.rotate_around_axis(axis, 1), Vec3::new(3, -2, 2));
+        assert_eq!(v.rotate_around_axis(axis, 2), Vec3::new(-2, -3, 2));
+        assert_eq!(v.rotate_around_axis(axis, 3), Vec3::new(-3, 2, 2));
+        assert_eq!(v.rotate_around_axis(axis, 4), v);
+        assert_eq!(v.rotate_around_axis(axis, 0), v);
     }
 
     proptest! {
