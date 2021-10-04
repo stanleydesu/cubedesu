@@ -1,10 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-use crate::{Face, Face::*};
-
-const ORDERED_FACES: [Face; 6] = [U, R, F, D, L, B];
-const STICKERS_PER_FACE: usize = 9;
-const TOTAL_STICKERS: usize = ORDERED_FACES.len() * STICKERS_PER_FACE;
+use crate::{Face, Face::*, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS};
 
 #[derive(Debug)]
 pub struct FaceletModel([Face; TOTAL_STICKERS]);
