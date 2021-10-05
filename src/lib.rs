@@ -18,6 +18,7 @@ pub enum Face {
     R,
     B,
     D,
+    X,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

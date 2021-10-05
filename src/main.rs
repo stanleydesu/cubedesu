@@ -33,6 +33,7 @@ fn face_to_color(face: Face) -> RGB {
             g: 88,
             b: 0,
         },
+        Face::X => RGB { r: 0, g: 0, b: 0 },
     }
 }
 
