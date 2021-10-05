@@ -1,3 +1,4 @@
+use strum::EnumIter;
 mod facelet_model;
 pub use facelet_model::*;
 mod vec3;
@@ -21,7 +22,8 @@ pub enum Face {
     X,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, EnumIter)]
+
 pub enum Move {
     // typical moves
     U,

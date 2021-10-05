@@ -1,6 +1,4 @@
-use crate::{
-    Axis, Face, Move, Movement, Point3, Turn, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS,
-};
+use crate::{Axis, Face, Move, Movement, Point3, Turn, TOTAL_STICKERS};
 use std::convert::TryInto;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -56,7 +54,7 @@ impl Sticker {
 /// E.g. GMove(_, Axis::Y, |pos| pos.y >= 0) represents a geometric move around
 /// the y axis, that should only affect Point3s that have a y value >= 0
 #[derive(Copy, Clone, Debug)]
-struct GMove {
+pub struct GMove {
     movement: Movement,
     axis: Axis,
     is_clockwise: bool, // whether rotation around the axis is clockwise
@@ -82,6 +80,7 @@ impl GMove {
 // length of each cubic piece is 2 units, with cube origin at (0, 0, 0)
 // e.g. the U center piece is centered at (0, 2, 0),
 // and the U center sticker is on the surface, at (0, 3, 0)
+#[derive(Debug, PartialEq, Eq)]
 pub struct GCube([Sticker; TOTAL_STICKERS]);
 
 impl GCube {
@@ -131,11 +130,45 @@ impl GCube {
             Move::Z => GMove::new(movement, Axis::Z, true, |_| true),
         }
     }
+
+    pub fn apply_gmove(&mut self, gmove: GMove) {
+        for sticker in self.0.iter_mut() {
+            *sticker = Sticker::apply_gmove(*sticker, gmove);
+        }
+    }
+
+    pub fn apply_gmoves(&mut self, gmoves: &[GMove]) {
+        for gmove in gmoves {
+            self.apply_gmove(*gmove);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn gcube_test() {
+        let mut gcube = GCube::new();
+        for m in Move::iter() {
+            // apply normal move
+            let turn = Turn::Single;
+            gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
+            // apply inverse
+            let turn = Turn::Prime;
+            gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
+            // apply double twice
+            let turn = Turn::Double;
+            gcube.apply_gmoves(&[
+                GCube::create_gmove(Movement(m, turn)),
+                GCube::create_gmove(Movement(m, turn)),
+            ]);
+        }
+        assert_eq!(gcube, GCube::new());
+    }
+
     #[test]
     fn apply_gmove_to_stickers() {
         // RU sticker (R face)
