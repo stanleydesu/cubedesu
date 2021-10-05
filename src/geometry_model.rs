@@ -33,8 +33,13 @@ impl Sticker {
     pub fn apply_gmove(sticker: Self, gmove: GMove) -> Self {
         if (gmove.predicate)(sticker.current) {
             let Movement(_, turn) = gmove.movement;
+            let turns = if gmove.is_clockwise {
+                turn as i8
+            } else {
+                -(turn as i8)
+            };
             Sticker {
-                current: Point3::rotate_around_axis(sticker.current, gmove.axis, turn as i8),
+                current: Point3::rotate_around_axis(sticker.current, gmove.axis, turns),
                 initial: sticker.initial,
             }
         } else {
@@ -43,19 +48,32 @@ impl Sticker {
     }
 }
 
-// represents geometric moves
+/// Represents geometric moves around some axis, which only affect Point3s that
+/// satisfy the predicate.
+/// Angle is based off the Movement's Turn component.
+/// The rotation direction around the axis is based off the is_clockwise flag.
+///
+/// E.g. GMove(_, Axis::Y, |pos| pos.y >= 0) represents a geometric move around
+/// the y axis, that should only affect Point3s that have a y value >= 0
 #[derive(Copy, Clone, Debug)]
-pub struct GMove {
+struct GMove {
     movement: Movement,
     axis: Axis,
+    is_clockwise: bool, // whether rotation around the axis is clockwise
     predicate: fn(Point3) -> bool,
 }
 
 impl GMove {
-    pub fn new(movement: Movement, axis: Axis, predicate: fn(Point3) -> bool) -> Self {
+    pub fn new(
+        movement: Movement,
+        axis: Axis,
+        is_clockwise: bool,
+        predicate: fn(Point3) -> bool,
+    ) -> Self {
         Self {
             movement,
             axis,
+            is_clockwise,
             predicate,
         }
     }
@@ -72,7 +90,7 @@ impl GCube {
         let mut v: Vec<Sticker> = vec![];
         // each sticker is on a face
         for face in [-3, 3] {
-            // and the following 2 coordinates describe its position on that face
+            // and the other 2 coordinates describe its position on that face
             // e.g. 0, 0 for the center sticker of that face
             for coord1 in [-2, 0, 2] {
                 for coord2 in [-2, 0, 2] {
@@ -86,31 +104,37 @@ impl GCube {
         Self(stickers)
     }
 
+    // // given some Movement, returns the corresponding GMove
+    // fn create_gmove() {
+
+    // }
+
     pub fn apply_movement(&mut self, movement: Movement) {
         let Movement(m, t) = movement;
-        match m {
-            // typical moves
-            Move::U => {}
-            Move::Uw => {}
-            Move::L => {}
-            Move::Lw => {}
-            Move::F => {}
-            Move::Fw => {}
-            Move::R => {}
-            Move::Rw => {}
-            Move::B => {}
-            Move::Bw => {}
-            Move::D => {}
-            Move::Dw => {}
-            // slice moves
-            Move::E => {}
-            Move::M => {}
-            Move::S => {}
-            // rotations
-            Move::X => {}
-            Move::Y => {}
-            Move::Z => {}
-        }
+        // create the GMove that corresponds to the given Movement
+        // let gmove = match m {
+        //     // typical moves
+        //     Move::U => GMove::new(movement, Axis::Y, |pos| pos.y >= 1),
+        //     Move::Uw => GMove::new(movement, Axis::Y, |pos| pos.y >= -1),
+        //     Move::L => GMove::new(movement, Axis::X, |pos| pos.x <= -1),
+        //     Move::Lw => GMove::new(movement, Axis::X, |pos| pos.x <= 1),
+        //     Move::F => GMove::new(movement, Axis::X, |pos| pos.x <= -1),
+        //     Move::Fw => {}
+        //     Move::R => {}
+        //     Move::Rw => {}
+        //     Move::B => {}
+        //     Move::Bw => {}
+        //     Move::D => {}
+        //     Move::Dw => {}
+        //     // slice moves
+        //     Move::E => {}
+        //     Move::M => {}
+        //     Move::S => {}
+        //     // rotations
+        //     Move::X => {}
+        //     Move::Y => {}
+        //     Move::Z => {}
+        // }
     }
 }
 
@@ -126,8 +150,15 @@ mod tests {
         // U center
         let uc = Sticker::from_point(Point3::new(0, 3, 0));
 
-        let u = GMove::new(Movement(Move::Uw, Turn::Single), Axis::Y, |pos| pos.y >= 0);
-        let r2 = GMove::new(Movement(Move::Rw, Turn::Double), Axis::X, |pos| pos.x >= 0);
+        let u = GMove::new(Movement(Move::Uw, Turn::Single), Axis::Y, true, |pos| {
+            pos.y >= 0
+        });
+        let r2 = GMove::new(Movement(Move::Rw, Turn::Double), Axis::X, true, |pos| {
+            pos.x >= 0
+        });
+        let l = GMove::new(Movement(Move::Lw, Turn::Single), Axis::X, false, |pos| {
+            pos.x <= 1
+        });
 
         // u moves RU to FU
         assert_eq!(
@@ -153,6 +184,19 @@ mod tests {
         assert_eq!(
             Sticker::apply_gmove(fd, r2),
             Sticker::new(fd.initial, Point3::new(0, 2, -3))
+        );
+
+        // l doesn't affect RU
+        assert_eq!(Sticker::apply_gmove(ru, l), ru);
+        // l moves U center to F center
+        assert_eq!(
+            Sticker::apply_gmove(uc, l),
+            Sticker::new(uc.initial, Point3::new(0, 0, 3))
+        );
+        // l moves FD to DB
+        assert_eq!(
+            Sticker::apply_gmove(fd, l),
+            Sticker::new(fd.initial, Point3::new(0, -3, -2))
         );
     }
 }
