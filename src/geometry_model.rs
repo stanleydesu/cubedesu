@@ -104,37 +104,32 @@ impl GCube {
         Self(stickers)
     }
 
-    // // given some Movement, returns the corresponding GMove
-    // fn create_gmove() {
-
-    // }
-
-    pub fn apply_movement(&mut self, movement: Movement) {
-        let Movement(m, t) = movement;
-        // create the GMove that corresponds to the given Movement
-        // let gmove = match m {
-        //     // typical moves
-        //     Move::U => GMove::new(movement, Axis::Y, |pos| pos.y >= 1),
-        //     Move::Uw => GMove::new(movement, Axis::Y, |pos| pos.y >= -1),
-        //     Move::L => GMove::new(movement, Axis::X, |pos| pos.x <= -1),
-        //     Move::Lw => GMove::new(movement, Axis::X, |pos| pos.x <= 1),
-        //     Move::F => GMove::new(movement, Axis::X, |pos| pos.x <= -1),
-        //     Move::Fw => {}
-        //     Move::R => {}
-        //     Move::Rw => {}
-        //     Move::B => {}
-        //     Move::Bw => {}
-        //     Move::D => {}
-        //     Move::Dw => {}
-        //     // slice moves
-        //     Move::E => {}
-        //     Move::M => {}
-        //     Move::S => {}
-        //     // rotations
-        //     Move::X => {}
-        //     Move::Y => {}
-        //     Move::Z => {}
-        // }
+    // create the GMove that corresponds to the given Movement
+    fn create_gmove(movement: Movement) -> GMove {
+        let Movement(m, _) = movement;
+        match m {
+            // typical moves
+            Move::U => GMove::new(movement, Axis::Y, true, |pos| pos.y >= 1),
+            Move::Uw => GMove::new(movement, Axis::Y, true, |pos| pos.y >= -1),
+            Move::L => GMove::new(movement, Axis::X, false, |pos| pos.x <= -1),
+            Move::Lw => GMove::new(movement, Axis::X, false, |pos| pos.x <= 1),
+            Move::F => GMove::new(movement, Axis::Z, true, |pos| pos.z >= 1),
+            Move::Fw => GMove::new(movement, Axis::Z, true, |pos| pos.z >= -1),
+            Move::R => GMove::new(movement, Axis::X, true, |pos| pos.x >= 1),
+            Move::Rw => GMove::new(movement, Axis::X, true, |pos| pos.x >= -1),
+            Move::B => GMove::new(movement, Axis::Z, false, |pos| pos.z <= -1),
+            Move::Bw => GMove::new(movement, Axis::Z, false, |pos| pos.z <= 1),
+            Move::D => GMove::new(movement, Axis::Y, false, |pos| pos.y <= -1),
+            Move::Dw => GMove::new(movement, Axis::Y, false, |pos| pos.y <= 1),
+            // slice moves
+            Move::E => GMove::new(movement, Axis::Y, false, |pos| pos.y == 0),
+            Move::M => GMove::new(movement, Axis::X, false, |pos| pos.x == 0),
+            Move::S => GMove::new(movement, Axis::Z, true, |pos| pos.z == 1),
+            // rotations
+            Move::X => GMove::new(movement, Axis::X, true, |_| true),
+            Move::Y => GMove::new(movement, Axis::Y, true, |_| true),
+            Move::Z => GMove::new(movement, Axis::Z, true, |_| true),
+        }
     }
 }
 
