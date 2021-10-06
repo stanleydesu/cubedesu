@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 use strum::ParseError;
 use strum_macros::{Display, EnumIter, EnumString};
 
@@ -74,23 +74,48 @@ pub enum Turn {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Movement(Move, Turn);
 
+#[derive(Debug, Clone)]
+pub struct ParseMovementError {
+    message: String,
+}
+
+impl fmt::Display for ParseMovementError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
 impl FromStr for Movement {
-    type Err = ::strum::ParseError;
+    type Err = ParseMovementError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err(ParseError::VariantNotFound);
+            return Err(ParseMovementError {
+                message: "Empty movement.".to_string(),
+            });
         }
-        // Move is up to 2 characters, so adjust where Turn is expected to start
+        // adjust where Turn is expected to start (Move is 1 or 2 characters)
         let turn_start_index = if s.len() > 1 && s.as_bytes()[1].is_ascii_alphabetic() {
             2
         } else {
             1
         };
-        let move_type = Move::from_str(&s[0..turn_start_index])?;
-        let turn_type = Turn::from_str(&s[turn_start_index..])?;
+        let move_type =
+            Move::from_str(&s[0..turn_start_index]).map_err(|_| ParseMovementError {
+                message: format!("Failed to parse Move part in {}", s),
+            })?;
+        let turn_type = Turn::from_str(&s[turn_start_index..]).map_err(|_| ParseMovementError {
+            message: format!("Failed to parse Turn part in {}", s),
+        })?;
         Ok(Movement(move_type, turn_type))
     }
+}
+
+pub fn scramble_to_movements(scramble: &str) -> Result<Vec<Movement>, ParseMovementError> {
+    scramble
+        .split_whitespace()
+        .map(|token| Movement::from_str(token))
+        .collect()
 }
 
 #[cfg(test)]
@@ -99,8 +124,8 @@ mod tests {
     use strum::IntoEnumIterator;
 
     #[test]
-    fn movement_from_valid_str() {
-        // test all possible valid string inputs
+    fn valid_str_to_movement() {
+        // test all valid string inputs
         for m in Move::iter() {
             for t in Turn::iter() {
                 let movement_string = format!("{}{}", m.to_string(), t.to_string());
@@ -109,6 +134,39 @@ mod tests {
                     Movement(m, t)
                 );
             }
+        }
+    }
+
+    #[test]
+    fn valid_scramble_to_movements() {
+        let scramble = "f L U2 D' r S";
+        let movements = scramble_to_movements(scramble).unwrap();
+        assert_eq!(
+            movements,
+            vec![
+                Movement(Move::Fw, Turn::Single),
+                Movement(Move::L, Turn::Single),
+                Movement(Move::U, Turn::Double),
+                Movement(Move::D, Turn::Inverse),
+                Movement(Move::Rw, Turn::Single),
+                Movement(Move::S, Turn::Single),
+            ]
+        );
+    }
+
+    #[test]
+    fn invalid_scramble_to_movements() {
+        let invalid_scrambles = [
+            "f L U2 D' r3 S",
+            "FF",
+            "u2'",
+            "2",
+            "F2 D2  D2 d e",
+            "2D F2 Z2",
+            "Z' z' X' M'2",
+        ];
+        for scramble in invalid_scrambles {
+            assert!(scramble_to_movements(scramble).is_err());
         }
     }
 }
