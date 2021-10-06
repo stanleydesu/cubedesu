@@ -119,6 +119,13 @@ impl GCube {
         }
     }
 
+    pub fn create_gmoves(movements: &[Movement]) -> Vec<GMove> {
+        movements
+            .into_iter()
+            .map(|movement| GCube::create_gmove(*movement))
+            .collect()
+    }
+
     pub fn apply_gmove(&mut self, gmove: GMove) {
         for sticker in self.0.iter_mut() {
             *sticker = Sticker::apply_gmove(*sticker, gmove);
@@ -146,8 +153,62 @@ pub fn get_face(pos: Point3) -> Face {
 
 #[cfg(test)]
 mod tests {
+    use crate::scramble_to_movements;
+
     use super::*;
     use strum::IntoEnumIterator;
+
+    #[test]
+    fn gcube_test_with_my_epic_roux_solutions() {
+        let mut gcube = GCube::new();
+        let scramble = "
+        L2 U L' F2 R F2 D2 B U B R2 D2 B2 R2 F' D2 B' U2 B2 L2
+        
+        x
+        U' F' R D r' D U2 F2
+        r2 U' F' U' F R'
+        U R U2 R2 F R F' R U2 R'
+        U M U2 M U' F2 M2 F2
+
+        x2
+        ";
+        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
+        gcube.apply_gmoves(&gmoves);
+        assert_eq!(gcube, GCube::new());
+
+        let mut gcube = GCube::new(); // 9.46
+        let scramble = "
+        F2 R' U' B2 L2 D' L2 F2 U B2 U' L2 R2 D2 F' L2 R D' L2 D U
+        
+        y' x
+        D' r' D U2 F2 U' F
+        r' U' M' R' U' R
+        U r U' r2 D' r U r' D r2 U r'
+        U2 M U M' U2 M U' M U' M2 U' M' U2 M U2 M2
+
+        y z2
+        ";
+        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
+        gcube.apply_gmoves(&gmoves);
+        assert_eq!(gcube, GCube::new());
+
+        let mut gcube = GCube::new();
+        let scramble = "
+        R L' U B2 R D2 B' D2 B2 R2 L2 U' L2 U F2 R2 D2 R2 D' L
+        
+        y2
+        D B' M B'
+        r U' R F' U' F
+        r2 U M2 U' R
+        U' r U' r2 D' r U' r' D r2 U r'
+        M' U2 M' U M' U' M2 U M2 U2 M U2 M2
+
+        y2
+        ";
+        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
+        gcube.apply_gmoves(&gmoves);
+        assert_eq!(gcube, GCube::new());
+    }
 
     #[test]
     fn gcube_test() {
