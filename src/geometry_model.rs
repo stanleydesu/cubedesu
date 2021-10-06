@@ -16,18 +16,6 @@ impl Sticker {
         Self::new(point, point)
     }
 
-    pub fn original_face(&self) -> Face {
-        match self.initial {
-            Point3 { x: 3, .. } => Face::R,
-            Point3 { x: -3, .. } => Face::L,
-            Point3 { y: 3, .. } => Face::U,
-            Point3 { y: -3, .. } => Face::D,
-            Point3 { z: 3, .. } => Face::F,
-            Point3 { z: -3, .. } => Face::B,
-            _ => Face::X,
-        }
-    }
-
     pub fn apply_gmove(sticker: Self, gmove: GMove) -> Self {
         if (gmove.predicate)(sticker.current) {
             let Movement(_, turn) = gmove.movement;
@@ -144,6 +132,18 @@ impl GCube {
     }
 }
 
+pub fn get_face(pos: Point3) -> Face {
+    match pos {
+        Point3 { x: 3, .. } => Face::R,
+        Point3 { x: -3, .. } => Face::L,
+        Point3 { y: 3, .. } => Face::U,
+        Point3 { y: -3, .. } => Face::D,
+        Point3 { z: 3, .. } => Face::F,
+        Point3 { z: -3, .. } => Face::B,
+        _ => Face::X,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -157,7 +157,7 @@ mod tests {
             let turn = Turn::Single;
             gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
             // apply inverse
-            let turn = Turn::Prime;
+            let turn = Turn::Inverse;
             gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
             // apply double twice
             let turn = Turn::Double;
