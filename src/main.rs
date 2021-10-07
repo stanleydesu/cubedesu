@@ -1,7 +1,9 @@
-use cubedesu::*;
-use macroquad::prelude::*;
+use std::str::FromStr;
 
-#[macroquad::main("Desu")]
+use cubedesu::*;
+use macroquad::{input::KeyCode, prelude::*};
+
+#[macroquad::main("cubedesu")]
 async fn main() {
     let mut gcube = GCube::new();
     gcube.apply_movements(&scramble_to_movements("").unwrap());
@@ -29,14 +31,21 @@ async fn main() {
 
     let point3_to_vec3 = |p: Point3| vec3(p.x as f32, p.y as f32, p.z as f32);
 
+    set_camera(&Camera3D {
+        position: vec3(0., 10., 12.),
+        up: vec3(0., 1., 0.),
+        target: vec3(0., 0., 0.),
+        ..Default::default()
+    });
+
     loop {
         clear_background(GRAY);
-        set_camera(&Camera3D {
-            position: vec3(0., 10., 12.),
-            up: vec3(0., 1., 0.),
-            target: vec3(0., 0., 0.),
-            ..Default::default()
-        });
+        if let Some(key) = get_last_key_pressed() {
+            if let Some(movement) = key_to_movement(key) {
+                gcube.apply_movement(&movement);
+            }
+        }
+
         let GCube(stickers) = gcube;
         for sticker in stickers {
             draw_cube(
@@ -47,44 +56,45 @@ async fn main() {
             );
         }
 
-        set_default_camera();
-
         next_frame().await
     }
 }
 
-// fn get_key{
-//     match
-//     "I": "R",
-//     "K": "R'",
-//     "W": "B",
-//     "O": "B'",
-//     "S": "D",
-//     "L": "D'",
-//     "D": "L",
-//     "E": "L'",
-//     "J": "U",
-//     "F": "U'",
-//     "H": "F",
-//     "G": "F'",
-//     ";": "y",
-//     "A": "y'",
-//     "U": "r",
-//     "R": "l'",
-//     "M": "r'",
-//     "V": "l",
-//     "T": "x",
-//     "Y": "x",
-//     "N": "x'",
-//     "B": "x'",
-//     ".": "M'",
-//     "X": "M'",
-//     "5": "M",
-//     "6": "M",
-//     "P": "z",
-//     "Q": "z'",
-//     "Z": "d",
-//     "C": "u'",
-//     ",": "u",
-//     "/": "d'"
-//                })
+fn key_to_movement(key: KeyCode) -> Option<Movement> {
+    let movement_str = match key {
+        KeyCode::I => "R",
+        KeyCode::K => "R'",
+        KeyCode::W => "B",
+        KeyCode::O => "B'",
+        KeyCode::S => "D",
+        KeyCode::L => "D'",
+        KeyCode::D => "L",
+        KeyCode::E => "L'",
+        KeyCode::J => "U",
+        KeyCode::F => "U'",
+        KeyCode::H => "F",
+        KeyCode::G => "F'",
+        KeyCode::Semicolon => "y",
+        KeyCode::A => "y'",
+        KeyCode::U => "r",
+        KeyCode::R => "l'",
+        KeyCode::M => "r'",
+        KeyCode::V => "l",
+        KeyCode::T => "x",
+        KeyCode::Y => "x",
+        KeyCode::N => "x'",
+        KeyCode::B => "x'",
+        KeyCode::Period => "M'",
+        KeyCode::X => "M'",
+        KeyCode::Key5 => "M",
+        KeyCode::Key6 => "M",
+        KeyCode::P => "z",
+        KeyCode::Q => "z'",
+        KeyCode::Z => "d",
+        KeyCode::C => "u'",
+        KeyCode::Comma => "u",
+        KeyCode::Slash => "d'",
+        _ => "",
+    };
+    Movement::from_str(movement_str).ok()
+}

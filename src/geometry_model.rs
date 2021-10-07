@@ -141,6 +141,10 @@ impl GCube {
         }
     }
 
+    pub fn apply_movement(&mut self, movement: &Movement) {
+        self.apply_gmoves(&[GCube::create_gmove(*movement)]);
+    }
+
     pub fn apply_movements(&mut self, movements: &[Movement]) {
         self.apply_gmoves(&GCube::create_gmoves(movements));
     }
