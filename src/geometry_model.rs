@@ -155,27 +155,29 @@ impl GCube {
             // then top to bottom. On the F face, top left sticker has the
             // smallest x value (x axis points right),
             // and the highest y value (y axis points up)
-            stickers.sort_by(
-                |a, b| match a.current.x < b.current.x && a.current.y > b.current.y {
+            stickers.sort_by(|a, b| {
+                match a.current.y > b.current.y
+                    || (a.current.y == b.current.y && a.current.x < b.current.x)
+                {
                     true => Ordering::Less,
                     false => Ordering::Greater,
-                },
-            );
+                }
+            });
             for sticker in stickers {
                 facelet_stickers[index] = get_face(sticker.initial);
                 index += 1;
             }
         };
 
-        for face in ORDERED_FACES {
+        for (pos, face) in ORDERED_FACES.iter().enumerate() {
             let mut c = *self;
             // move the current face to the F face, then transfer the face data
             match face {
-                Face::U => c.apply_gmove(GCube::create_gmove(Movement(Move::X, Turn::Inverse))),
-                Face::R => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Inverse))),
-                Face::L => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Single))),
-                Face::B => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Double))),
-                Face::D => c.apply_gmove(GCube::create_gmove(Movement(Move::X, Turn::Single))),
+                Face::U => c.apply_movements(&[Movement(Move::X, Turn::Inverse)]),
+                Face::R => c.apply_movements(&[Movement(Move::Y, Turn::Single)]),
+                Face::L => c.apply_movements(&[Movement(Move::Y, Turn::Inverse)]),
+                Face::B => c.apply_movements(&[Movement(Move::Y, Turn::Double)]),
+                Face::D => c.apply_movements(&[Movement(Move::X, Turn::Single)]),
                 _ => {}
             };
             let v: Vec<Sticker> =
@@ -185,7 +187,7 @@ impl GCube {
                     .collect();
             // guaranteed to be 9 stickers on the F face
             let stickers: [Sticker; STICKERS_PER_FACE] = v.try_into().unwrap();
-            set_face(stickers, (face as usize) * STICKERS_PER_FACE);
+            set_face(stickers, pos * STICKERS_PER_FACE);
         }
         FaceletModel(facelet_stickers)
     }
