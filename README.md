@@ -26,9 +26,9 @@ $ cargo run
 - ``src/vec3``: Custom memory-efficient 3D vector implementation designed specifically for the geometry model
 
 ## Dependencies
-- Thanks to [macroquad](https://crates.io/crates/macroquad), brilliant and simple API helped with easily rendering a cube
+- Thanks to [macroquad](https://crates.io/crates/macroquad), brilliant and simple API that helped with easily rendering a cube
 - Thanks to [strum](https://crates.io/crates/strum), facilitated parsing of strings into Moves and Turns as well as enum iteration and serialization
-- Thanks to [proptest](https://crates.io/crates/proptest), awesome for property-based testing
+- Thanks to [proptest](https://crates.io/crates/proptest), great for property-based testing
 
 ## Resources Used
 - [Onionhoney's extremely well written article on modelling Rubik's Cubes](https://observablehq.com/@onionhoney/how-to-model-a-rubiks-cube)
