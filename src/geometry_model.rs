@@ -5,9 +5,9 @@ use crate::{
 use std::{cmp::Ordering, convert::TryInto};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-struct Sticker {
-    initial: Point3, // describes the sticker's initial position
-    current: Point3, // describes the sticker's current position
+pub struct Sticker {
+    pub initial: Point3, // describes the sticker's initial position
+    pub current: Point3, // describes the sticker's current position
 }
 
 impl Sticker {
@@ -72,7 +72,7 @@ impl GMove {
 // e.g. the U center piece is centered at (0, 2, 0),
 // and the U center sticker is on the surface, at (0, 3, 0)
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct GCube([Sticker; TOTAL_STICKERS]);
+pub struct GCube(pub [Sticker; TOTAL_STICKERS]);
 
 impl GCube {
     // creates a solved cube
