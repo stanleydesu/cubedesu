@@ -7,7 +7,7 @@ use macroquad::{input::KeyCode, prelude::*};
 async fn main() {
     let mut gcube = GCube::new();
     gcube.apply_movements(&scramble_to_movements("").unwrap());
-    const F_LEN: f32 = 1.7; // side length of each facelet
+    const F_LEN: f32 = 1.5; // side length of each facelet
     const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
                                // returns the size vec3 of a facelet
 
@@ -53,6 +53,11 @@ async fn main() {
                 face_to_dimensions(get_face(sticker.current)),
                 None,
                 face_to_color(get_face(sticker.initial)),
+            );
+            draw_cube_wires(
+                point3_to_vec3(sticker.current),
+                face_to_dimensions(get_face(sticker.current)),
+                BLACK,
             );
         }
 
