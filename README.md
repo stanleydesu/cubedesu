@@ -21,7 +21,7 @@ $ cargo run
 
 ## Project Structure
 - ``src/lib``: Cube related types, such as a Face, Move, Turn, Movement (a Move associated with a Turn)
-- ``src/geometric_model``: Geometric implementation of a cube, represented with an array of all the cube's stickers (3-dimensional points) and moves as rotations amongst some axis
+- ``src/geometry_model``: Geometric implementation of a cube, represented with an array of all the cube's stickers (3-dimensional points) and moves as rotations amongst some axis
 - ``src/facelet_model``: Facelet implementation of a cube, represented as an array of stickers, ordered by U, R, F, D, L, then B face
 - ``src/vec3``: Custom memory-efficient 3D vector implementation designed specifically for the geometry model
 
