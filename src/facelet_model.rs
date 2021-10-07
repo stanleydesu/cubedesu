@@ -3,10 +3,10 @@ use std::ops::{Index, IndexMut};
 use crate::{Face, Face::*, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS};
 
 #[derive(Debug)]
-pub struct FaceletModel([Face; TOTAL_STICKERS]);
+pub struct FaceletModel(pub [Face; TOTAL_STICKERS]);
 
 impl FaceletModel {
-    pub fn default_facelet() -> Self {
+    pub fn new() -> Self {
         let mut stickers = [U; TOTAL_STICKERS];
         let v: Vec<Face> = ORDERED_FACES
             .iter()
@@ -41,12 +41,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_is_solved() {
+    fn new_is_solved() {
         let solved_facelet = [
             U, U, U, U, U, U, U, U, U, R, R, R, R, R, R, R, R, R, F, F, F, F, F, F, F, F, F, D, D,
             D, D, D, D, D, D, D, L, L, L, L, L, L, L, L, L, B, B, B, B, B, B, B, B, B,
         ];
-        let FaceletModel(default) = FaceletModel::default_facelet();
+        let FaceletModel(default) = FaceletModel::new();
         assert_eq!(default, solved_facelet);
     }
 }

@@ -1,5 +1,8 @@
-use crate::{Axis, Face, Move, Movement, Point3, Turn, TOTAL_STICKERS};
-use std::convert::TryInto;
+use crate::{
+    Axis, Face, FaceletModel, Move, Movement, Point3, Turn, ORDERED_FACES, STICKERS_PER_FACE,
+    TOTAL_STICKERS,
+};
+use std::{cmp::Ordering, convert::TryInto};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 struct Sticker {
@@ -68,7 +71,7 @@ impl GMove {
 // length of each cubic piece is 2 units, with cube origin at (0, 0, 0)
 // e.g. the U center piece is centered at (0, 2, 0),
 // and the U center sticker is on the surface, at (0, 3, 0)
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct GCube([Sticker; TOTAL_STICKERS]);
 
 impl GCube {
@@ -137,6 +140,55 @@ impl GCube {
             self.apply_gmove(*gmove);
         }
     }
+
+    pub fn apply_movements(&mut self, movements: &[Movement]) {
+        self.apply_gmoves(&GCube::create_gmoves(movements));
+    }
+
+    pub fn to_facelet_model(&self) -> FaceletModel {
+        let mut facelet_stickers = [Face::U; TOTAL_STICKERS];
+
+        // assumes stickers are on the F face
+        let mut set_face = |mut stickers: [Sticker; STICKERS_PER_FACE], mut index: usize| {
+            // sort the stickers for insertion into the facelet model,
+            // where facelets per face are ordered from left to right,
+            // then top to bottom. On the F face, top left sticker has the
+            // smallest x value (x axis points right),
+            // and the highest y value (y axis points up)
+            stickers.sort_by(
+                |a, b| match a.current.x < b.current.x && a.current.y > b.current.y {
+                    true => Ordering::Less,
+                    false => Ordering::Greater,
+                },
+            );
+            for sticker in stickers {
+                facelet_stickers[index] = get_face(sticker.initial);
+                index += 1;
+            }
+        };
+
+        for face in ORDERED_FACES {
+            let mut c = *self;
+            // move the current face to the F face, then transfer the face data
+            match face {
+                Face::U => c.apply_gmove(GCube::create_gmove(Movement(Move::X, Turn::Inverse))),
+                Face::R => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Inverse))),
+                Face::L => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Single))),
+                Face::B => c.apply_gmove(GCube::create_gmove(Movement(Move::Y, Turn::Double))),
+                Face::D => c.apply_gmove(GCube::create_gmove(Movement(Move::X, Turn::Single))),
+                _ => {}
+            };
+            let v: Vec<Sticker> =
+                c.0.iter()
+                    .cloned()
+                    .filter(|s| get_face(s.current) == Face::F)
+                    .collect();
+            // guaranteed to be 9 stickers on the F face
+            let stickers: [Sticker; STICKERS_PER_FACE] = v.try_into().unwrap();
+            set_face(stickers, (face as usize) * STICKERS_PER_FACE);
+        }
+        FaceletModel(facelet_stickers)
+    }
 }
 
 pub fn get_face(pos: Point3) -> Face {
@@ -156,6 +208,7 @@ mod tests {
     use crate::scramble_to_movements;
 
     use super::*;
+    use crate::Turn;
     use strum::IntoEnumIterator;
 
     #[test]
@@ -172,8 +225,7 @@ mod tests {
 
         x2
         ";
-        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
-        gcube.apply_gmoves(&gmoves);
+        gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
         assert_eq!(gcube, GCube::new());
 
         let mut gcube = GCube::new(); // 9.46
@@ -188,8 +240,23 @@ mod tests {
 
         y z2
         ";
-        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
-        gcube.apply_gmoves(&gmoves);
+        gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
+        assert_eq!(gcube, GCube::new());
+
+        let mut gcube = GCube::new();
+        let scramble = "
+        R L' U B2 R D2 B' D2 B2 R2 L2 U' L2 U F2 R2 D2 R2 D' L
+
+        y2
+        D B' M B'
+        r U' R F' U' F
+        r2 U M2 U' R
+        U' r U' r2 D' r U' r' D r2 U r'
+        M' U2 M' U M' U' M2 U M2 U2 M U2 M2
+
+        y2
+        ";
+        gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
         assert_eq!(gcube, GCube::new());
 
         let mut gcube = GCube::new();
@@ -205,8 +272,7 @@ mod tests {
 
         y2
         ";
-        let gmoves = GCube::create_gmoves(&scramble_to_movements(scramble).unwrap());
-        gcube.apply_gmoves(&gmoves);
+        gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
         assert_eq!(gcube, GCube::new());
     }
 

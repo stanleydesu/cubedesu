@@ -44,7 +44,9 @@ fn main() {
     //  D
     let sticker_len = 15u32; // length of each sticker in pixels
     let mut canvas = Canvas::new(13 * sticker_len, 10 * sticker_len);
-    let cube = FaceletModel::default_facelet();
+    let mut gcube = GCube::new();
+    gcube.apply_movements(&scramble_to_movements("M' U M'").unwrap());
+    let cube = gcube.to_facelet_model();
     let mut draw_face = |mut index: usize, row: u32, col: u32| {
         for i in row..=(row + 2) {
             for j in col..=(col + 2) {
