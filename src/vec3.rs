@@ -75,11 +75,11 @@ impl Vec3 {
             return v;
         }
         // simplify n_turns to 0..=3, e.g. -1 is converted to 3
-        n_turns = n_turns % 4;
+        n_turns %= 4;
         // since normal rotation maths gives anticlockwise, do this for clockwise
         n_turns *= -1;
         if n_turns < 0 {
-            n_turns = 4 + n_turns;
+            n_turns += 4;
         }
 
         // values of cos and sin at 90 degree intervals (have integer values),

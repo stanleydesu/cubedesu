@@ -90,8 +90,7 @@ impl GCube {
                 }
             }
         }
-        let stickers: [Sticker; TOTAL_STICKERS] = v.try_into().unwrap();
-        Self(stickers)
+        Self(v.try_into().unwrap())
     }
 
     // create the GMove that corresponds to the given Movement
@@ -124,7 +123,7 @@ impl GCube {
 
     pub fn create_gmoves(movements: &[Movement]) -> Vec<GMove> {
         movements
-            .into_iter()
+            .iter()
             .map(|movement| GCube::create_gmove(*movement))
             .collect()
     }
@@ -194,6 +193,12 @@ impl GCube {
             set_face(stickers, pos * STICKERS_PER_FACE);
         }
         FaceletModel(facelet_stickers)
+    }
+}
+
+impl Default for GCube {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

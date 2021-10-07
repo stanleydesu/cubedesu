@@ -1,19 +1,26 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    convert::TryInto,
+    ops::{Index, IndexMut},
+};
 
-use crate::{Face, Face::*, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS};
+use crate::{Face, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS};
 
 #[derive(Debug)]
 pub struct FaceletModel(pub [Face; TOTAL_STICKERS]);
 
 impl FaceletModel {
     pub fn new() -> Self {
-        let mut stickers = [U; TOTAL_STICKERS];
         let v: Vec<Face> = ORDERED_FACES
             .iter()
             .flat_map(|&face| [face; STICKERS_PER_FACE])
             .collect();
-        stickers.copy_from_slice(v.as_slice());
-        Self(stickers)
+        Self(v.try_into().unwrap())
+    }
+}
+
+impl Default for FaceletModel {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -39,6 +46,7 @@ impl IndexMut<usize> for FaceletModel {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Face::*;
 
     #[test]
     fn new_is_solved() {
