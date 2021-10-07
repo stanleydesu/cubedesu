@@ -1,88 +1,90 @@
 use cubedesu::*;
-use draw::*;
+use macroquad::prelude::*;
 
-fn face_to_color(face: Face) -> RGB {
-    match face {
-        Face::F => RGB {
-            r: 0,
-            g: 155,
-            b: 72,
-        },
-        Face::U => RGB {
-            r: 255,
-            g: 255,
-            b: 255,
-        },
-        Face::R => RGB {
-            r: 183,
-            g: 18,
-            b: 52,
-        },
-        Face::D => RGB {
-            r: 255,
-            g: 213,
-            b: 0,
-        },
-        Face::B => RGB {
-            r: 0,
-            g: 70,
-            b: 173,
-        },
-        Face::L => RGB {
-            r: 255,
-            g: 88,
-            b: 0,
-        },
-        Face::X => RGB { r: 0, g: 0, b: 0 },
+#[macroquad::main("Desu")]
+async fn main() {
+    let mut gcube = GCube::new();
+    gcube.apply_movements(&scramble_to_movements("").unwrap());
+    const F_LEN: f32 = 1.7; // side length of each facelet
+    const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
+                               // returns the size vec3 of a facelet
+
+    // returns facelet dimensions/orientation for a specific face
+    let face_to_dimensions = |face| match face {
+        Face::U | Face::D => vec3(F_LEN, F_DEPTH, F_LEN),
+        Face::L | Face::R => vec3(F_DEPTH, F_LEN, F_LEN),
+        Face::F | Face::B => vec3(F_LEN, F_LEN, F_DEPTH),
+        _ => vec3(0.0, 0.0, 0.0),
+    };
+
+    let face_to_color = |face| match face {
+        Face::U => WHITE,
+        Face::R => RED,
+        Face::L => ORANGE,
+        Face::B => BLUE,
+        Face::D => YELLOW,
+        Face::F => GREEN,
+        _ => BLACK,
+    };
+
+    let point3_to_vec3 = |p: Point3| vec3(p.x as f32, p.y as f32, p.z as f32);
+
+    loop {
+        clear_background(GRAY);
+        set_camera(&Camera3D {
+            position: vec3(0., 10., 12.),
+            up: vec3(0., 1., 0.),
+            target: vec3(0., 0., 0.),
+            ..Default::default()
+        });
+        let GCube(stickers) = gcube;
+        for sticker in stickers {
+            draw_cube(
+                point3_to_vec3(sticker.current),
+                face_to_dimensions(get_face(sticker.current)),
+                None,
+                face_to_color(get_face(sticker.initial)),
+            );
+        }
+
+        set_default_camera();
+
+        next_frame().await
     }
 }
 
-fn main() {
-    // cube rendering layout (where each letter corresponds to a face):
-    //  U
-    // LFRB
-    //  D
-    let sticker_len = 15u32; // length of each sticker in pixels
-    let mut canvas = Canvas::new(13 * sticker_len, 10 * sticker_len);
-    let mut gcube = GCube::new();
-    gcube.apply_movements(&scramble_to_movements("M' U M'").unwrap());
-    let cube = gcube.to_facelet_model();
-    let mut draw_face = |mut index: usize, row: u32, col: u32| {
-        for i in row..=(row + 2) {
-            for j in col..=(col + 2) {
-                let color = face_to_color(cube[index]);
-                index += 1;
-                let create_rect = || {
-                    Drawing::new()
-                        .with_shape(Shape::Rectangle {
-                            width: sticker_len,
-                            height: sticker_len,
-                        })
-                        .with_xy((j * sticker_len) as f32, (i * sticker_len) as f32)
-                };
-                let sticker = create_rect().with_style(Style::filled(color));
-                let border = create_rect().with_style(Style::stroked(2, Color::black()));
-                canvas.display_list.add(sticker);
-                canvas.display_list.add(border);
-            }
-        }
-    };
-
-    // draw the faces
-    draw_face(0, 0, 3); // U
-    draw_face(9, 3, 6); // R
-    draw_face(18, 3, 3); // F
-    draw_face(27, 6, 3); // D
-    draw_face(36, 3, 0); // L
-    draw_face(45, 3, 9); // B
-
-    render::save(&canvas, "images/cube.svg", SvgRenderer::new()).expect("Failed to save");
-}
-
-#[cfg(test)]
-mod tests {
-    // use super::*;
-
-    #[test]
-    fn test() {}
-}
+// fn get_key{
+//     match
+//     "I": "R",
+//     "K": "R'",
+//     "W": "B",
+//     "O": "B'",
+//     "S": "D",
+//     "L": "D'",
+//     "D": "L",
+//     "E": "L'",
+//     "J": "U",
+//     "F": "U'",
+//     "H": "F",
+//     "G": "F'",
+//     ";": "y",
+//     "A": "y'",
+//     "U": "r",
+//     "R": "l'",
+//     "M": "r'",
+//     "V": "l",
+//     "T": "x",
+//     "Y": "x",
+//     "N": "x'",
+//     "B": "x'",
+//     ".": "M'",
+//     "X": "M'",
+//     "5": "M",
+//     "6": "M",
+//     "P": "z",
+//     "Q": "z'",
+//     "Z": "d",
+//     "C": "u'",
+//     ",": "u",
+//     "/": "d'"
+//                })

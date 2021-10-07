@@ -9,9 +9,9 @@ name = "cubedesu"
 path = "src/lib.rs"
 
 [dependencies]
-draw = "0.3.0"
 strum = "0.21"
 strum_macros = "0.21"
+macroquad = "0.3.10"
 
 [dev-dependencies]
 proptest = "1.0.0"
