@@ -90,7 +90,7 @@ fn key_to_movement(key: KeyCode) -> Option<Movement> {
         KeyCode::N => "x'",
         KeyCode::B => "x'",
         KeyCode::Period => "M'",
-        KeyCode::X => "M'",
+        KeyCode::X => "M",
         KeyCode::Key5 => "M",
         KeyCode::Key6 => "M",
         KeyCode::P => "z",
