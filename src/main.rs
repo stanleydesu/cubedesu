@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use cubedesu::*;
-use macroquad::{input::KeyCode, prelude::*};
+use macroquad::{input::KeyCode, math::Quat, prelude::*};
 
 const F_LEN: f32 = 1.5; // side length of each facelet
 const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
@@ -17,33 +17,30 @@ async fn main() {
         target: vec3(0., 0., 0.),
         ..Default::default()
     };
-    set_camera(&camera);
-
-    let camera_x_displacement = vec3(0.2, 0., 0.);
-    let camera_y_displacement = vec3(0., 0.2, 0.);
 
     loop {
+        let mut y_rotation_angle = 0.0;
+        if is_key_down(KeyCode::Left) {
+            y_rotation_angle = 0.05;
+        }
+        if is_key_down(KeyCode::Right) {
+            y_rotation_angle = -0.05;
+        }
+        if is_key_down(KeyCode::Up) && camera.position.y < 10. {
+            camera.position += vec3(0., 0.4, 0.);
+        }
+        if is_key_down(KeyCode::Down) && camera.position.y > -10. {
+            camera.position -= vec3(0., 0.4, 0.);
+        }
+        camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
+        set_camera(&camera);
+
         clear_background(GRAY);
         if let Some(key) = get_last_key_pressed() {
             if let Some(movement) = key_to_movement(key) {
                 gcube.apply_movement(&movement);
             }
         }
-
-        if is_key_down(KeyCode::Left) {
-            camera.position -= camera_x_displacement
-        }
-        if is_key_down(KeyCode::Right) {
-            camera.position += camera_x_displacement
-        }
-        if is_key_down(KeyCode::Up) {
-            camera.position += camera_y_displacement
-        }
-        if is_key_down(KeyCode::Down) {
-            camera.position -= camera_y_displacement
-        }
-
-        set_camera(&camera);
 
         let GCube(stickers) = gcube;
         for sticker in stickers {
