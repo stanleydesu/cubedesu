@@ -31,12 +31,15 @@ async fn main() {
 
     let point3_to_vec3 = |p: Point3| vec3(p.x as f32, p.y as f32, p.z as f32);
 
-    set_camera(&Camera3D {
+    let mut camera = Camera3D {
         position: vec3(0., 10., 12.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
-    });
+    };
+    set_camera(&camera);
+
+    let camera_x_displacement = vec3(0.1, 0., 0.);
 
     loop {
         clear_background(GRAY);
@@ -45,6 +48,14 @@ async fn main() {
                 gcube.apply_movement(&movement);
             }
         }
+
+        if is_key_down(KeyCode::Left) {
+            camera.position -= camera_x_displacement
+        } else if is_key_down(KeyCode::Right) {
+            camera.position += camera_x_displacement
+        }
+
+        set_camera(&camera);
 
         let GCube(stickers) = gcube;
         for sticker in stickers {
