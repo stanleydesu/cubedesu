@@ -4,7 +4,7 @@ use strum_macros::{Display, EnumIter, EnumString};
 mod facelet_model;
 pub use facelet_model::*;
 mod vec3;
-pub use vec3::*;
+use vec3::*;
 pub type Point3 = vec3::Vec3;
 mod geometry_model;
 pub use geometry_model::*;
