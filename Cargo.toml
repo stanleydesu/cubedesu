@@ -12,5 +12,8 @@ strum = "0.21"
 strum_macros = "0.21"
 macroquad = "0.3.10"
 
+[profile.dev.package.'*']
+opt-level = 3
+
 [dev-dependencies]
 proptest = "1.0.0"
