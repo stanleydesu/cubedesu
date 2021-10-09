@@ -1,6 +1,6 @@
 # cubedesu
 
-Rubik's Cube simulator written in Rust. 
+Rubik's Cube simulator written in Rust. Play it at https://stanleydesu.github.io/cubedesu/ !
 
 ## Features
 - Visual simulation of a 3x3 cube, allowing moves with [keyboard input](./keymap.png)
@@ -9,6 +9,7 @@ Rubik's Cube simulator written in Rust.
 
 
 ## Usage
+
 Build the project (optionally in release mode):
 ```sh
 $ cargo build [--release]
@@ -18,6 +19,8 @@ Run the project:
 ```sh
 $ cargo run
 ```
+
+Or use the web version (slower): https://stanleydesu.github.io/cubedesu/
 
 ## Project Structure
 - ``src/lib``: Cube related types, such as a Face, Move, Turn, Movement (a Move associated with a Turn)
