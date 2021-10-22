@@ -23,9 +23,9 @@ impl Sticker {
         if (gmove.predicate)(sticker.current) {
             let Movement(_, turn) = gmove.movement;
             let turns = if gmove.is_clockwise {
-                turn as i8
+                turn as i16
             } else {
-                -(turn as i8)
+                -(turn as i16)
             };
             Sticker {
                 current: Point3::rotate_around_axis(sticker.current, gmove.axis, turns),
@@ -81,11 +81,11 @@ where
     [(); N * N * TOTAL_FACES]: Sized,
 {
     /// Returns the range of facelet center coordinates along an arbitrary axis.
-    pub fn range() -> [i32; N] {
-        let n = N as i32;
+    pub fn range() -> [i16; N] {
+        let n = N as i16;
         (-n + 1..=n - 1)
             .step_by(2)
-            .collect::<Vec<i32>>()
+            .collect::<Vec<i16>>()
             .try_into()
             .unwrap()
     }
@@ -94,11 +94,12 @@ where
     pub fn new() -> Self {
         let mut v: Vec<Sticker> = vec![];
         // each sticker is on a face
-        for face in [-3, 3] {
+        let n = N as i16;
+        for face in [-n, n] {
             // and the other 2 coordinates describe its position on that face
             // e.g. 0, 0 for the center sticker of that face
-            for coord1 in [-2, 0, 2] {
-                for coord2 in [-2, 0, 2] {
+            for coord1 in Self::range() {
+                for coord2 in Self::range() {
                     v.push(Sticker::from_point(Point3::new(face, coord1, coord2)));
                     v.push(Sticker::from_point(Point3::new(coord1, face, coord2)));
                     v.push(Sticker::from_point(Point3::new(coord1, coord2, face)));
@@ -111,25 +112,24 @@ where
     // create the GMove that corresponds to the given Movement
     fn create_gmove(movement: Movement) -> GMove {
         let Movement(m, _) = movement;
-
         match m {
             // typical moves
-            Move::U => GMove::new(movement, Axis::Y, true, |pos| pos.y >= 1),
-            Move::Uw => GMove::new(movement, Axis::Y, true, |pos| pos.y >= -1),
-            Move::L => GMove::new(movement, Axis::X, false, |pos| pos.x <= -1),
-            Move::Lw => GMove::new(movement, Axis::X, false, |pos| pos.x <= 1),
-            Move::F => GMove::new(movement, Axis::Z, true, |pos| pos.z >= 1),
-            Move::Fw => GMove::new(movement, Axis::Z, true, |pos| pos.z >= -1),
-            Move::R => GMove::new(movement, Axis::X, true, |pos| pos.x >= 1),
-            Move::Rw => GMove::new(movement, Axis::X, true, |pos| pos.x >= -1),
-            Move::B => GMove::new(movement, Axis::Z, false, |pos| pos.z <= -1),
-            Move::Bw => GMove::new(movement, Axis::Z, false, |pos| pos.z <= 1),
-            Move::D => GMove::new(movement, Axis::Y, false, |pos| pos.y <= -1),
-            Move::Dw => GMove::new(movement, Axis::Y, false, |pos| pos.y <= 1),
+            Move::U => GMove::new(movement, Axis::Y, true, |pos| pos.y >= (N as i16) - 2),
+            Move::Uw => GMove::new(movement, Axis::Y, true, |pos| pos.y >= (N as i16) - 2 * 2),
+            Move::L => GMove::new(movement, Axis::X, false, |pos| pos.x <= -(N as i16) + 2),
+            Move::Lw => GMove::new(movement, Axis::X, false, |pos| pos.x <= -(N as i16) + 2 * 2),
+            Move::F => GMove::new(movement, Axis::Z, true, |pos| pos.z >= (N as i16) - 2),
+            Move::Fw => GMove::new(movement, Axis::Z, true, |pos| pos.z >= (N as i16) - 2 * 2),
+            Move::R => GMove::new(movement, Axis::X, true, |pos| pos.x >= (N as i16) - 2),
+            Move::Rw => GMove::new(movement, Axis::X, true, |pos| pos.x >= (N as i16) - 2 * 2),
+            Move::B => GMove::new(movement, Axis::Z, false, |pos| pos.z <= -(N as i16) + 2),
+            Move::Bw => GMove::new(movement, Axis::Z, false, |pos| pos.z <= -(N as i16) + 2 * 2),
+            Move::D => GMove::new(movement, Axis::Y, false, |pos| pos.y <= -(N as i16) + 2),
+            Move::Dw => GMove::new(movement, Axis::Y, false, |pos| pos.y <= -(N as i16) + 2 * 2),
             // slice moves
             Move::E => GMove::new(movement, Axis::Y, false, |pos| pos.y == 0),
             Move::M => GMove::new(movement, Axis::X, false, |pos| pos.x == 0),
-            Move::S => GMove::new(movement, Axis::Z, true, |pos| pos.z == 1),
+            Move::S => GMove::new(movement, Axis::Z, true, |pos| pos.z == 0),
             // rotations
             Move::X => GMove::new(movement, Axis::X, true, |_| true),
             Move::Y => GMove::new(movement, Axis::Y, true, |_| true),
