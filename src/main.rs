@@ -8,7 +8,7 @@ const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
-    let mut gcube = GCube::new();
+    let mut gcube = GCube::<3>::new();
     gcube.apply_movements(&scramble_to_movements("").unwrap());
 
     let mut camera = Camera3D {

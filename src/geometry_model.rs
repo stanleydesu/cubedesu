@@ -1,6 +1,6 @@
 use crate::{
     Axis, Face, FaceletModel, Move, Movement, Point3, Turn, ORDERED_FACES, STICKERS_PER_FACE,
-    TOTAL_STICKERS,
+    TOTAL_FACES, TOTAL_STICKERS,
 };
 use std::{cmp::Ordering, convert::TryInto};
 
@@ -72,9 +72,24 @@ impl GMove {
 // e.g. the U center piece is centered at (0, 2, 0),
 // and the U center sticker is on the surface, at (0, 3, 0)
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct GCube(pub [Sticker; TOTAL_STICKERS]);
+pub struct GCube<const N: usize>(pub [Sticker; N * N * TOTAL_FACES])
+where
+    [(); N * N * TOTAL_FACES]: Sized;
 
-impl GCube {
+impl<const N: usize> GCube<N>
+where
+    [(); N * N * TOTAL_FACES]: Sized,
+{
+    /// Returns the range of facelet center coordinates along an arbitrary axis.
+    pub fn range() -> [i32; N] {
+        let n = N as i32;
+        (-n + 1..=n - 1)
+            .step_by(2)
+            .collect::<Vec<i32>>()
+            .try_into()
+            .unwrap()
+    }
+
     // creates a solved cube
     pub fn new() -> Self {
         let mut v: Vec<Sticker> = vec![];
@@ -96,6 +111,7 @@ impl GCube {
     // create the GMove that corresponds to the given Movement
     fn create_gmove(movement: Movement) -> GMove {
         let Movement(m, _) = movement;
+
         match m {
             // typical moves
             Move::U => GMove::new(movement, Axis::Y, true, |pos| pos.y >= 1),
@@ -124,7 +140,7 @@ impl GCube {
     pub fn create_gmoves(movements: &[Movement]) -> Vec<GMove> {
         movements
             .iter()
-            .map(|movement| GCube::create_gmove(*movement))
+            .map(|movement| GCube::<N>::create_gmove(*movement))
             .collect()
     }
 
@@ -141,11 +157,11 @@ impl GCube {
     }
 
     pub fn apply_movement(&mut self, movement: &Movement) {
-        self.apply_gmoves(&[GCube::create_gmove(*movement)]);
+        self.apply_gmoves(&[GCube::<N>::create_gmove(*movement)]);
     }
 
     pub fn apply_movements(&mut self, movements: &[Movement]) {
-        self.apply_gmoves(&GCube::create_gmoves(movements));
+        self.apply_gmoves(&GCube::<N>::create_gmoves(movements));
     }
 
     pub fn to_facelet_model(&self) -> FaceletModel {
@@ -176,11 +192,11 @@ impl GCube {
             let mut c = *self;
             // move the current face to the F face, then transfer the face data
             match face {
-                Face::U => c.apply_movements(&[Movement(Move::X, Turn::Inverse)]),
-                Face::R => c.apply_movements(&[Movement(Move::Y, Turn::Single)]),
-                Face::L => c.apply_movements(&[Movement(Move::Y, Turn::Inverse)]),
-                Face::B => c.apply_movements(&[Movement(Move::Y, Turn::Double)]),
-                Face::D => c.apply_movements(&[Movement(Move::X, Turn::Single)]),
+                Face::U => c.apply_movement(&Movement(Move::X, Turn::Inverse)),
+                Face::R => c.apply_movement(&Movement(Move::Y, Turn::Single)),
+                Face::L => c.apply_movement(&Movement(Move::Y, Turn::Inverse)),
+                Face::B => c.apply_movement(&Movement(Move::Y, Turn::Double)),
+                Face::D => c.apply_movement(&Movement(Move::X, Turn::Single)),
                 _ => {}
             };
             let v: Vec<Sticker> =
@@ -196,7 +212,10 @@ impl GCube {
     }
 }
 
-impl Default for GCube {
+impl<const N: usize> Default for GCube<N>
+where
+    [(); N * N * TOTAL_FACES]: Sized,
+{
     fn default() -> Self {
         Self::new()
     }
@@ -224,7 +243,7 @@ mod tests {
 
     #[test]
     fn gcube_test_with_my_epic_roux_solutions() {
-        let mut gcube = GCube::new();
+        let mut gcube = GCube::<3>::new();
         let scramble = "
         L2 U L' F2 R F2 D2 B U B R2 D2 B2 R2 F' D2 B' U2 B2 L2
         
@@ -237,9 +256,9 @@ mod tests {
         x2
         ";
         gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
-        assert_eq!(gcube, GCube::new());
+        assert_eq!(gcube, GCube::<3>::new());
 
-        let mut gcube = GCube::new(); // 9.46
+        let mut gcube = GCube::<3>::new(); // 9.46
         let scramble = "
         F2 R' U' B2 L2 D' L2 F2 U B2 U' L2 R2 D2 F' L2 R D' L2 D U
         
@@ -252,9 +271,9 @@ mod tests {
         y z2
         ";
         gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
-        assert_eq!(gcube, GCube::new());
+        assert_eq!(gcube, GCube::<3>::new());
 
-        let mut gcube = GCube::new();
+        let mut gcube = GCube::<3>::new();
         let scramble = "
         R L' U B2 R D2 B' D2 B2 R2 L2 U' L2 U F2 R2 D2 R2 D' L
 
@@ -268,9 +287,9 @@ mod tests {
         y2
         ";
         gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
-        assert_eq!(gcube, GCube::new());
+        assert_eq!(gcube, GCube::<3>::new());
 
-        let mut gcube = GCube::new();
+        let mut gcube = GCube::<3>::new();
         let scramble = "
         R L' U B2 R D2 B' D2 B2 R2 L2 U' L2 U F2 R2 D2 R2 D' L
         
@@ -284,27 +303,27 @@ mod tests {
         y2
         ";
         gcube.apply_movements(&scramble_to_movements(scramble).unwrap());
-        assert_eq!(gcube, GCube::new());
+        assert_eq!(gcube, GCube::<3>::new());
     }
 
     #[test]
     fn gcube_test() {
-        let mut gcube = GCube::new();
+        let mut gcube = GCube::<3>::new();
         for m in Move::iter() {
             // apply normal move
             let turn = Turn::Single;
-            gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
+            gcube.apply_gmoves(&[GCube::<3>::create_gmove(Movement(m, turn))]);
             // apply inverse
             let turn = Turn::Inverse;
-            gcube.apply_gmoves(&[GCube::create_gmove(Movement(m, turn))]);
+            gcube.apply_gmoves(&[GCube::<3>::create_gmove(Movement(m, turn))]);
             // apply double twice
             let turn = Turn::Double;
             gcube.apply_gmoves(&[
-                GCube::create_gmove(Movement(m, turn)),
-                GCube::create_gmove(Movement(m, turn)),
+                GCube::<3>::create_gmove(Movement(m, turn)),
+                GCube::<3>::create_gmove(Movement(m, turn)),
             ]);
         }
-        assert_eq!(gcube, GCube::new());
+        assert_eq!(gcube, GCube::<3>::new());
     }
 
     #[test]
