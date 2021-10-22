@@ -333,10 +333,8 @@ mod tests {
             gcube.apply_movement(&Movement(m, turn));
             // apply double twice
             let turn = Turn::Double;
-            gcube.apply_gmoves(&[
-                GCube::<3>::create_gmove(Movement(m, turn)),
-                GCube::<3>::create_gmove(Movement(m, turn)),
-            ]);
+            gcube.apply_movement(&Movement(m, turn));
+            gcube.apply_movement(&Movement(m, turn));
         }
         assert_eq!(gcube, GCube::<3>::new());
     }
