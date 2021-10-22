@@ -8,7 +8,7 @@ const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
-    let mut gcube = GCube::<3>::new();
+    let mut gcube = GCube::<1>::new();
     gcube.apply_movements(&scramble_to_movements("").unwrap());
 
     let mut camera = Camera3D {
@@ -46,13 +46,13 @@ async fn main() {
         for sticker in stickers {
             draw_cube(
                 point3_to_vec3(sticker.current),
-                face_to_dimensions(get_face(sticker.current)),
+                face_to_dimensions(gcube.get_curr_face(sticker)),
                 None,
-                face_to_color(get_face(sticker.initial)),
+                face_to_color(gcube.get_initial_face(sticker)),
             );
             draw_cube_wires(
                 point3_to_vec3(sticker.current),
-                face_to_dimensions(get_face(sticker.current)),
+                face_to_dimensions(gcube.get_curr_face(sticker)),
                 BLACK,
             );
         }

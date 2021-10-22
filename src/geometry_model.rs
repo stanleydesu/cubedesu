@@ -140,7 +140,7 @@ where
     pub fn create_gmoves(movements: &[Movement]) -> Vec<GMove> {
         movements
             .iter()
-            .map(|movement| GCube::<N>::create_gmove(*movement))
+            .map(|movement| Self::create_gmove(*movement))
             .collect()
     }
 
@@ -157,11 +157,30 @@ where
     }
 
     pub fn apply_movement(&mut self, movement: &Movement) {
-        self.apply_gmoves(&[GCube::<N>::create_gmove(*movement)]);
+        self.apply_gmoves(&[Self::create_gmove(*movement)]);
     }
 
     pub fn apply_movements(&mut self, movements: &[Movement]) {
-        self.apply_gmoves(&GCube::<N>::create_gmoves(movements));
+        self.apply_gmoves(&Self::create_gmoves(movements));
+    }
+
+    fn get_face(&self, pos: Point3) -> Face {
+        let n = N as i16;
+        if pos.x == n {
+            Face::R
+        } else if pos.x == -n {
+            Face::L
+        } else if pos.y == n {
+            Face::U
+        } else if pos.y == -n {
+            Face::D
+        } else if pos.z == n {
+            Face::F
+        } else if pos.z == -n {
+            Face::B
+        } else {
+            Face::X
+        }
     }
 
     pub fn to_facelet_model(&self) -> FaceletModel {
@@ -183,7 +202,7 @@ where
                 }
             });
             for sticker in stickers {
-                facelet_stickers[index] = get_face(sticker.initial);
+                facelet_stickers[index] = self.get_face(sticker.initial);
                 index += 1;
             }
         };
@@ -202,13 +221,21 @@ where
             let v: Vec<Sticker> =
                 c.0.iter()
                     .cloned()
-                    .filter(|s| get_face(s.current) == Face::F)
+                    .filter(|s| self.get_face(s.current) == Face::F)
                     .collect();
             // guaranteed to be 9 stickers on the F face
             let stickers: [Sticker; STICKERS_PER_FACE] = v.try_into().unwrap();
             set_face(stickers, pos * STICKERS_PER_FACE);
         }
         FaceletModel(facelet_stickers)
+    }
+
+    pub fn get_curr_face(&self, sticker: Sticker) -> Face {
+        self.get_face(sticker.current)
+    }
+
+    pub fn get_initial_face(&self, sticker: Sticker) -> Face {
+        self.get_face(sticker.initial)
     }
 }
 
@@ -218,18 +245,6 @@ where
 {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-pub fn get_face(pos: Point3) -> Face {
-    match pos {
-        Point3 { x: 3, .. } => Face::R,
-        Point3 { x: -3, .. } => Face::L,
-        Point3 { y: 3, .. } => Face::U,
-        Point3 { y: -3, .. } => Face::D,
-        Point3 { z: 3, .. } => Face::F,
-        Point3 { z: -3, .. } => Face::B,
-        _ => Face::X,
     }
 }
 
@@ -312,10 +327,10 @@ mod tests {
         for m in Move::iter() {
             // apply normal move
             let turn = Turn::Single;
-            gcube.apply_gmoves(&[GCube::<3>::create_gmove(Movement(m, turn))]);
+            gcube.apply_movement(&Movement(m, turn));
             // apply inverse
             let turn = Turn::Inverse;
-            gcube.apply_gmoves(&[GCube::<3>::create_gmove(Movement(m, turn))]);
+            gcube.apply_movement(&Movement(m, turn));
             // apply double twice
             let turn = Turn::Double;
             gcube.apply_gmoves(&[
