@@ -1,6 +1,4 @@
-#![feature(adt_const_params)]
 #![feature(generic_const_exprs)]
-#![feature(const_generics_defaults)]
 
 use std::{fmt, str::FromStr};
 use strum_macros::{Display, EnumIter, EnumString};
@@ -119,7 +117,7 @@ impl FromStr for Movement {
 pub fn scramble_to_movements(scramble: &str) -> Result<Vec<Movement>, ParseMovementError> {
     scramble
         .split_whitespace()
-        .map(|token| Movement::from_str(token))
+        .map(Movement::from_str)
         .collect()
 }
 
