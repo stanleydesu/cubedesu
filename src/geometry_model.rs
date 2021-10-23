@@ -71,11 +71,11 @@ impl GMove {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct GCube<const N: usize>(pub [Sticker; N * N * TOTAL_FACES])
 where
-    [(); N * N * TOTAL_FACES]: Sized;
+    [(); N * N * TOTAL_FACES]: ;
 
 impl<const N: usize> GCube<N>
 where
-    [(); N * N * TOTAL_FACES]: Sized,
+    [(); N * N * TOTAL_FACES]: ,
 {
     /// Returns the range of facelet center coordinates along an arbitrary axis.
     pub fn range() -> [i16; N] {
@@ -238,7 +238,7 @@ where
 
 impl<const N: usize> Default for GCube<N>
 where
-    [(); N * N * TOTAL_FACES]: Sized,
+    [(); N * N * TOTAL_FACES]: ,
 {
     fn default() -> Self {
         Self::new()

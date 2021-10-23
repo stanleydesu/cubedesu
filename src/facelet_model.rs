@@ -10,7 +10,10 @@ pub struct FaceletModel<const N: usize>(pub [Face; N * N * TOTAL_FACES])
 where
     [Face; N * N * TOTAL_FACES]: ;
 
-impl<const N: usize> FaceletModel<N> where [Face; N * N * TOTAL_FACES]:{
+impl<const N: usize> FaceletModel<N>
+where
+    [Face; N * N * TOTAL_FACES]: ,
+{
     pub fn new() -> Self {
         let v: Vec<Face> = ORDERED_FACES
             .iter()
@@ -20,7 +23,10 @@ impl<const N: usize> FaceletModel<N> where [Face; N * N * TOTAL_FACES]:{
     }
 }
 
-impl<const N: usize> Default for FaceletModel<N> where [Face; N * N * TOTAL_FACES]: {
+impl<const N: usize> Default for FaceletModel<N>
+where
+    [Face; N * N * TOTAL_FACES]: ,
+{
     fn default() -> Self {
         Self::new()
     }
@@ -32,14 +38,20 @@ impl<const N: usize> Default for FaceletModel<N> where [Face; N * N * TOTAL_FACE
 //     }
 // }
 
-impl<const N: usize> Index<usize> for FaceletModel<N> where [Face; N * N * TOTAL_FACES]: {
+impl<const N: usize> Index<usize> for FaceletModel<N>
+where
+    [Face; N * N * TOTAL_FACES]: ,
+{
     type Output = Face;
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
 
-impl<const N: usize> IndexMut<usize> for FaceletModel<N> where [Face; N * N * TOTAL_FACES]: {
+impl<const N: usize> IndexMut<usize> for FaceletModel<N>
+where
+    [Face; N * N * TOTAL_FACES]: ,
+{
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
     }
