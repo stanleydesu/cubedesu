@@ -1,7 +1,4 @@
-use crate::{
-    Axis, Face, FaceletModel, Move, Movement, Point3, Turn, ORDERED_FACES, STICKERS_PER_FACE,
-    TOTAL_FACES, TOTAL_STICKERS,
-};
+use crate::{Axis, Face, FaceletModel, Move, Movement, Point3, Turn, ORDERED_FACES, TOTAL_FACES};
 use std::{cmp::Ordering, convert::TryInto};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -183,11 +180,11 @@ where
         }
     }
 
-    pub fn to_facelet_model(&self) -> FaceletModel {
-        let mut facelet_stickers = [Face::U; TOTAL_STICKERS];
+    pub fn to_facelet_model(&self) -> FaceletModel<N> {
+        let mut facelet_stickers = [Face::U; N * N * TOTAL_FACES];
 
         // assumes stickers are on the F face
-        let mut set_face = |mut stickers: [Sticker; STICKERS_PER_FACE], mut index: usize| {
+        let mut set_face = |mut stickers: [Sticker; N * N], mut index: usize| {
             // sort the stickers for insertion into the facelet model,
             // where facelets per face are ordered from left to right,
             // then top to bottom. On the F face, top left sticker has the
@@ -224,8 +221,8 @@ where
                     .filter(|s| self.get_face(s.current) == Face::F)
                     .collect();
             // guaranteed to be 9 stickers on the F face
-            let stickers: [Sticker; STICKERS_PER_FACE] = v.try_into().unwrap();
-            set_face(stickers, pos * STICKERS_PER_FACE);
+            let stickers: [Sticker; N * N] = v.try_into().unwrap();
+            set_face(stickers, pos * N * N);
         }
         FaceletModel(facelet_stickers)
     }
