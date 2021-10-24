@@ -1,5 +1,3 @@
-#![feature(generic_const_exprs)]
-
 use std::{fmt, str::FromStr};
 use strum_macros::{Display, EnumIter, EnumString};
 

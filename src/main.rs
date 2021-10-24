@@ -8,11 +8,10 @@ const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
-    const SIZE: usize = 70;
-    let mut gcube = GCube::<SIZE>::new();
+    let mut gcube = GCube::new(3);
 
     let mut camera = Camera3D {
-        position: vec3(0., 10., SIZE as f32 * 4.),
+        position: vec3(0., 10., gcube.size as f32 * 4.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
@@ -26,11 +25,11 @@ async fn main() {
         if is_key_down(KeyCode::Right) {
             y_rotation_angle = -0.05;
         }
-        if is_key_down(KeyCode::Up) && camera.position.y < (SIZE as f32 * 3.) {
-            camera.position += vec3(0., SIZE as f32 / 7., 0.);
+        if is_key_down(KeyCode::Up) && camera.position.y < (gcube.size as f32 * 3.) {
+            camera.position += vec3(0., gcube.size as f32 / 7., 0.);
         }
-        if is_key_down(KeyCode::Down) && camera.position.y > (SIZE as f32 * -3.) {
-            camera.position -= vec3(0., SIZE as f32 / 7., 0.);
+        if is_key_down(KeyCode::Down) && camera.position.y > (gcube.size as f32 * -3.) {
+            camera.position -= vec3(0., gcube.size as f32 / 7., 0.);
         }
         camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
         set_camera(&camera);
@@ -40,21 +39,24 @@ async fn main() {
             if let Some(movement) = key_to_movement(key) {
                 gcube.apply_movement(&movement);
             }
+            let curr_size = gcube.size;
+            if key == KeyCode::Minus {
+                gcube.shrink();
+            } else if key == KeyCode::Equal {
+                gcube.grow();
+            }
+            if curr_size != gcube.size {
+                camera.position.z = gcube.size as f32 * 4.;
+            }
         }
 
-        let GCube(stickers) = gcube;
-        for sticker in stickers {
+        for sticker in gcube.stickers.iter() {
             draw_cube(
                 point3_to_vec3(sticker.current),
-                face_to_dimensions(gcube.get_curr_face(sticker)),
+                face_to_dimensions(gcube.get_curr_face(*sticker)),
                 None,
-                face_to_color(gcube.get_initial_face(sticker)),
+                face_to_color(gcube.get_initial_face(*sticker)),
             );
-            // draw_cube_wires(
-            //     point3_to_vec3(sticker.current),
-            //     face_to_dimensions(gcube.get_curr_face(sticker)),
-            //     BLACK,
-            // );
         }
 
         next_frame().await
