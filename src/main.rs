@@ -11,29 +11,36 @@ async fn main() {
     let mut gcube = GCube::new(3);
 
     let mut camera = Camera3D {
-        position: vec3(0., 10., gcube.size as f32 * 4.),
+        position: vec3(0., gcube.size as f32 * 3.5, gcube.size as f32 * 4.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
     };
 
     loop {
+        let mut size_f = gcube.size as f32;
+        if let Some(key) = get_last_key_pressed() {
+            if key == KeyCode::Minus { gcube.shrink() } 
+            else if key == KeyCode::Equal { gcube.grow() }
+            else if let Some(movement) = key_to_movement(key) {
+                gcube.apply_movement(&movement);
+            }
+            if size_f != gcube.size as f32 {
+                camera.position *= gcube.size as f32 / size_f;
+                size_f = gcube.size as f32;
+            }
+        }
         let mut y_rotation_angle = 0.0;
-        if is_key_down(KeyCode::Left) {
-            y_rotation_angle = 0.05;
+        if is_key_down(KeyCode::Left) { y_rotation_angle = 0.05; }
+        if is_key_down(KeyCode::Right) { y_rotation_angle = -0.05; }
+        if is_key_down(KeyCode::Up) { camera.position.y += size_f / 7.; }
+        if is_key_down(KeyCode::Down) { camera.position.y -= size_f / 7.; }
+        camera.position.y = clamp(camera.position.y, size_f * -3.5, size_f * 3.5);
+        if y_rotation_angle != 0.0 {
+            camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
         }
-        if is_key_down(KeyCode::Right) {
-            y_rotation_angle = -0.05;
-        }
-        if is_key_down(KeyCode::Up) && camera.position.y < (gcube.size as f32 * 3.) {
-            camera.position.y += gcube.size as f32 / 7.;
-        }
-        if is_key_down(KeyCode::Down) && camera.position.y > (gcube.size as f32 * -3.) {
-            camera.position.y -= gcube.size as f32 / 7.;
-        }
-        camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
+        
         set_camera(&camera);
-
         clear_background(GRAY);
         for sticker in gcube.stickers.iter() {
             draw_cube(
@@ -43,22 +50,6 @@ async fn main() {
                 face_to_color(gcube.get_initial_face(*sticker)),
             );
         }
-
-        if let Some(key) = get_last_key_pressed() {
-            if let Some(movement) = key_to_movement(key) {
-                gcube.apply_movement(&movement);
-            }
-            let curr_size = gcube.size;
-            if key == KeyCode::Minus {
-                gcube.shrink();
-            } else if key == KeyCode::Equal {
-                gcube.grow();
-            }
-            if curr_size != gcube.size {
-                camera.position *= gcube.size as f32 / curr_size as f32;
-            }
-        }
-
         next_frame().await
     }
 }
