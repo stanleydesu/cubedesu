@@ -26,15 +26,24 @@ async fn main() {
             y_rotation_angle = -0.05;
         }
         if is_key_down(KeyCode::Up) && camera.position.y < (gcube.size as f32 * 3.) {
-            camera.position += vec3(0., gcube.size as f32 / 7., 0.);
+            camera.position.y += gcube.size as f32 / 7.;
         }
         if is_key_down(KeyCode::Down) && camera.position.y > (gcube.size as f32 * -3.) {
-            camera.position -= vec3(0., gcube.size as f32 / 7., 0.);
+            camera.position.y -= gcube.size as f32 / 7.;
         }
         camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
         set_camera(&camera);
 
         clear_background(GRAY);
+        for sticker in gcube.stickers.iter() {
+            draw_cube(
+                point3_to_vec3(sticker.current),
+                face_to_dimensions(gcube.get_curr_face(*sticker)),
+                None,
+                face_to_color(gcube.get_initial_face(*sticker)),
+            );
+        }
+
         if let Some(key) = get_last_key_pressed() {
             if let Some(movement) = key_to_movement(key) {
                 gcube.apply_movement(&movement);
@@ -46,17 +55,8 @@ async fn main() {
                 gcube.grow();
             }
             if curr_size != gcube.size {
-                camera.position.z = gcube.size as f32 * 4.;
+                camera.position *= gcube.size as f32 / curr_size as f32;
             }
-        }
-
-        for sticker in gcube.stickers.iter() {
-            draw_cube(
-                point3_to_vec3(sticker.current),
-                face_to_dimensions(gcube.get_curr_face(*sticker)),
-                None,
-                face_to_color(gcube.get_initial_face(*sticker)),
-            );
         }
 
         next_frame().await
