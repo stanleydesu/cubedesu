@@ -4,7 +4,7 @@ use cubedesu::*;
 use macroquad::{input::KeyCode, math::Quat, prelude::*};
 
 const F_LEN: f32 = 1.8; // side length of each facelet
-const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
+const F_DEPTH: f32 = 0.00; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
