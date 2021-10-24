@@ -9,16 +9,15 @@ const F_DEPTH: f32 = 0.00; // thickness/depth of each facelet
 #[macroquad::main("cubedesu")]
 async fn main() {
     let mut gcube = GCube::new(3);
-
+    let mut size_f = gcube.size as f32;
     let mut camera = Camera3D {
-        position: vec3(0., gcube.size as f32 * 3.5, gcube.size as f32 * 4.),
+        position: vec3(0., size_f * 3.5, size_f * 4.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
     };
 
     loop {
-        let mut size_f = gcube.size as f32;
         if let Some(key) = get_last_key_pressed() {
             if key == KeyCode::Minus { gcube.shrink() } 
             else if key == KeyCode::Equal { gcube.grow() }
@@ -30,17 +29,17 @@ async fn main() {
                 size_f = gcube.size as f32;
             }
         }
-        let mut y_rotation_angle = 0.0;
-        if is_key_down(KeyCode::Left) { y_rotation_angle = 0.05; }
-        if is_key_down(KeyCode::Right) { y_rotation_angle = -0.05; }
+        let mut angle = 0.0;
+        if is_key_down(KeyCode::Left) { angle = 0.05; }
+        if is_key_down(KeyCode::Right) { angle = -0.05; }
         if is_key_down(KeyCode::Up) { camera.position.y += size_f / 7.; }
         if is_key_down(KeyCode::Down) { camera.position.y -= size_f / 7.; }
         camera.position.y = clamp(camera.position.y, size_f * -3.5, size_f * 3.5);
-        if y_rotation_angle != 0.0 {
-            camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
+        if angle != 0.0 {
+            camera.position = Quat::from_rotation_y(angle).mul_vec3(camera.position);
         }
-        
         set_camera(&camera);
+
         clear_background(GRAY);
         for sticker in gcube.stickers.iter() {
             draw_cube(
