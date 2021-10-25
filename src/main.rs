@@ -81,13 +81,6 @@ async fn main() {
     }
 }
 
-// returns the 3 closest faces on a cube to a Vec3
-// fn closest_faces(p: Vec3) -> [Face; 3] {
-//     let face_centers = vec![
-//         // vec3(0.0)
-//     ];
-// }
-
 fn face_to_dimensions(face: Face) -> Vec3 {
     match face {
         Face::U | Face::D => vec3(F_LEN, F_DEPTH, F_LEN),
