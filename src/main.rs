@@ -52,7 +52,11 @@ async fn main() {
             );
         }
         if is_stickered {
-            draw_cube(vec3(0., 0., 0.), vec3(size_f * 1.98, size_f * 1.98, size_f * 1.98), None, BLACK);
+            let scale = if size_f > 20. { 1.96 } else { 1.99 };
+            draw_cube(vec3(0., 0., 0.), 
+                vec3(size_f * scale, size_f * scale, size_f * scale), 
+                None, 
+                BLACK);
         }
         next_frame().await
     }
