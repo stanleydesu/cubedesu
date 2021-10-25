@@ -9,9 +9,9 @@ pub type Point3 = vec3::Vec3;
 mod geometry_model;
 pub use geometry_model::*;
 
-pub const ORDERED_FACES: [Face; 6] = [Face::U, Face::R, Face::F, Face::D, Face::L, Face::B];
-pub const STICKERS_PER_FACE: usize = 9;
-pub const TOTAL_STICKERS: usize = ORDERED_FACES.len() * STICKERS_PER_FACE;
+pub const TOTAL_FACES: usize = 6;
+pub const ORDERED_FACES: [Face; TOTAL_FACES] =
+    [Face::U, Face::R, Face::F, Face::D, Face::L, Face::B];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Face {
@@ -113,7 +113,7 @@ impl FromStr for Movement {
 pub fn scramble_to_movements(scramble: &str) -> Result<Vec<Movement>, ParseMovementError> {
     scramble
         .split_whitespace()
-        .map(|token| Movement::from_str(token))
+        .map(Movement::from_str)
         .collect()
 }
 

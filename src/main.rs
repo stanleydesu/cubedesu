@@ -3,60 +3,52 @@ use std::str::FromStr;
 use cubedesu::*;
 use macroquad::{input::KeyCode, math::Quat, prelude::*};
 
-const F_LEN: f32 = 1.5; // side length of each facelet
-const F_DEPTH: f32 = 0.01; // thickness/depth of each facelet
+const F_LEN: f32 = 1.8; // side length of each facelet
+const F_DEPTH: f32 = 0.00; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
-    let mut gcube = GCube::new();
-    gcube.apply_movements(&scramble_to_movements("").unwrap());
-
+    let mut gcube = GCube::new(3);
+    let mut size_f = gcube.size as f32;
     let mut camera = Camera3D {
-        position: vec3(0., 10., 12.),
+        position: vec3(0., size_f * 3.5, size_f * 4.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
     };
 
     loop {
-        let mut y_rotation_angle = 0.0;
-        if is_key_down(KeyCode::Left) {
-            y_rotation_angle = 0.05;
+        if let Some(key) = get_last_key_pressed() {
+            if key == KeyCode::Minus { gcube.shrink() } 
+            else if key == KeyCode::Equal { gcube.grow() }
+            else if let Some(movement) = key_to_movement(key) {
+                gcube.apply_movement(&movement);
+            }
+            if size_f != gcube.size as f32 {
+                camera.position *= gcube.size as f32 / size_f;
+                size_f = gcube.size as f32;
+            }
         }
-        if is_key_down(KeyCode::Right) {
-            y_rotation_angle = -0.05;
+        let mut angle = 0.0;
+        if is_key_down(KeyCode::Left) { angle = 0.05; }
+        if is_key_down(KeyCode::Right) { angle = -0.05; }
+        if is_key_down(KeyCode::Up) { camera.position.y += size_f / 7.; }
+        if is_key_down(KeyCode::Down) { camera.position.y -= size_f / 7.; }
+        camera.position.y = clamp(camera.position.y, size_f * -3.5, size_f * 3.5);
+        if angle != 0.0 {
+            camera.position = Quat::from_rotation_y(angle).mul_vec3(camera.position);
         }
-        if is_key_down(KeyCode::Up) && camera.position.y < 10. {
-            camera.position += vec3(0., 0.4, 0.);
-        }
-        if is_key_down(KeyCode::Down) && camera.position.y > -10. {
-            camera.position -= vec3(0., 0.4, 0.);
-        }
-        camera.position = Quat::from_rotation_y(y_rotation_angle).mul_vec3(camera.position);
         set_camera(&camera);
 
         clear_background(GRAY);
-        if let Some(key) = get_last_key_pressed() {
-            if let Some(movement) = key_to_movement(key) {
-                gcube.apply_movement(&movement);
-            }
-        }
-
-        let GCube(stickers) = gcube;
-        for sticker in stickers {
+        for sticker in gcube.stickers.iter() {
             draw_cube(
                 point3_to_vec3(sticker.current),
-                face_to_dimensions(get_face(sticker.current)),
+                face_to_dimensions(gcube.get_curr_face(*sticker)),
                 None,
-                face_to_color(get_face(sticker.initial)),
-            );
-            draw_cube_wires(
-                point3_to_vec3(sticker.current),
-                face_to_dimensions(get_face(sticker.current)),
-                BLACK,
+                face_to_color(gcube.get_initial_face(*sticker)),
             );
         }
-
         next_frame().await
     }
 }

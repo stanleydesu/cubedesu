@@ -32,16 +32,16 @@ pub enum Axis {
     Z,
 }
 
-/// specialised vec3 for i8 only (-128..128)
+/// specialised vec3 for i16 only (-128..128)
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Vec3 {
-    pub x: i8,
-    pub y: i8,
-    pub z: i8,
+    pub x: i16,
+    pub y: i16,
+    pub z: i16,
 }
 
 impl Vec3 {
-    pub fn new(x: i8, y: i8, z: i8) -> Self {
+    pub fn new(x: i16, y: i16, z: i16) -> Self {
         Self { x, y, z }
     }
 
@@ -49,11 +49,11 @@ impl Vec3 {
         Self::new(0, 0, 0)
     }
 
-    pub fn length_squared(self) -> i8 {
+    pub fn length_squared(self) -> i16 {
         Self::dot(self, self)
     }
 
-    pub fn dot(lhs: Self, rhs: Self) -> i8 {
+    pub fn dot(lhs: Self, rhs: Self) -> i16 {
         lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z
     }
 
@@ -70,7 +70,7 @@ impl Vec3 {
     /// If n_turns is negative, then it does abs(n_turns) anticlockwise turns.
     /// e.g. (1,0,0) (unit x axis vec) rotated upon the z-axis with n_turns = 1
     /// would resulting in (0,-1,0)
-    pub fn rotate_around_axis(v: Vec3, axis: Axis, mut n_turns: i8) -> Self {
+    pub fn rotate_around_axis(v: Vec3, axis: Axis, mut n_turns: i16) -> Self {
         if n_turns == 0 {
             return v;
         }
@@ -112,8 +112,8 @@ impl AddAssign for Vec3 {
     }
 }
 
-impl MulAssign<i8> for Vec3 {
-    fn mul_assign(&mut self, rhs: i8) {
+impl MulAssign<i16> for Vec3 {
+    fn mul_assign(&mut self, rhs: i16) {
         *self = *self * rhs;
     }
 }
@@ -145,14 +145,14 @@ impl Mul<Self> for Vec3 {
     }
 }
 
-impl Mul<i8> for Vec3 {
+impl Mul<i16> for Vec3 {
     type Output = Self;
-    fn mul(self, rhs: i8) -> Self {
+    fn mul(self, rhs: i16) -> Self {
         self * Self::new(rhs, rhs, rhs)
     }
 }
 
-impl Mul<Vec3> for i8 {
+impl Mul<Vec3> for i16 {
     type Output = Vec3;
     fn mul(self, rhs: Self::Output) -> Self::Output {
         rhs * self
@@ -168,34 +168,34 @@ mod tests {
     };
 
     prop_compose! {
-        // generates any i8 values
-        fn any_i8()(i in i8::MIN..=i8::MAX) -> i8 {
+        // generates any i16 values
+        fn any_i16()(i in i16::MIN..=i16::MAX) -> i16 {
             i
         }
     }
 
     prop_compose! {
-        // generates restricted i8 values that won't overflow when squared
-        fn arb_i8()(i in -11..=11i8) -> i8 {
+        // generates restricted i16 values that won't overflow when squared
+        fn arb_i16()(i in -11..=11i16) -> i16 {
             i
         }
     }
 
     prop_compose! {
-        pub fn arb_vec3()(x in arb_i8(), y in arb_i8(), z in arb_i8()) -> Vec3 {
+        pub fn arb_vec3()(x in arb_i16(), y in arb_i16(), z in arb_i16()) -> Vec3 {
             Vec3::new(x, y, z)
         }
     }
 
     prop_compose! {
-        pub fn any_vec3()(x in any_i8(), y in any_i8(), z in any_i8()) -> Vec3 {
+        pub fn any_vec3()(x in any_i16(), y in any_i16(), z in any_i16()) -> Vec3 {
             Vec3::new(x, y, z)
         }
     }
 
     prop_compose! {
         // custom vec3 where x, y, z values range from min to max (inclusive)
-        pub fn gen_vec3(min: i8, max: i8)(x in min..=max, y in min..=max, z in min..=max) -> Vec3 {
+        pub fn gen_vec3(min: i16, max: i16)(x in min..=max, y in min..=max, z in min..=max) -> Vec3 {
             Vec3::new(x, y, z)
         }
     }
@@ -262,22 +262,22 @@ mod tests {
 
     proptest! {
         #[test]
-        fn new_constructs_with_parameters(x in any_i8(), y in any_i8(), z in any_i8()) {
+        fn new_constructs_with_parameters(x in any_i16(), y in any_i16(), z in any_i16()) {
             prop_assert_eq!(Vec3::new(x, y, z), Vec3 { x, y, z });
         }
 
         #[test]
-        fn zero_creates_zero_vector(x in 0..=0i8, y in 0..=0i8, z in 0..=0i8) {
+        fn zero_creates_zero_vector(x in 0..=0i16, y in 0..=0i16, z in 0..=0i16) {
             prop_assert_eq!(Vec3::zero(), Vec3 { x, y, z });
         }
 
         #[test]
-        fn neg_op_idempotent(v in gen_vec3(-i8::MAX, i8::MAX)) {
+        fn neg_op_idempotent(v in gen_vec3(-i16::MAX, i16::MAX)) {
             prop_assert_eq!(v, --v);
         }
 
         #[test]
-        fn neg_op_negates_vec(v in gen_vec3(-i8::MAX, i8::MAX)) {
+        fn neg_op_negates_vec(v in gen_vec3(-i16::MAX, i16::MAX)) {
             prop_assert_eq!(-v, Vec3::new(-v.x, -v.y, -v.z));
         }
 
@@ -359,12 +359,12 @@ mod tests {
         }
 
         #[test]
-        fn mul_scalar_associative(v1 in gen_vec3(-5, 5), scalar in -5..=5i8, v2 in gen_vec3(-5, 5)) {
+        fn mul_scalar_associative(v1 in gen_vec3(-5, 5), scalar in -5..=5i16, v2 in gen_vec3(-5, 5)) {
             prop_assert_eq!((v1 * scalar) * v2, v1 * (scalar * v2));
         }
 
         #[test]
-        fn mul_scalar_correct(v in arb_vec3(), scalar in arb_i8()) {
+        fn mul_scalar_correct(v in arb_vec3(), scalar in arb_i16()) {
             let expected = Vec3::new(v.x * scalar, v.y * scalar, v.z * scalar);
             prop_assert_eq!(v * scalar, expected);
         }

@@ -3,16 +3,16 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-use crate::{Face, ORDERED_FACES, STICKERS_PER_FACE, TOTAL_STICKERS};
+use crate::{Face, ORDERED_FACES};
 
 #[derive(Debug)]
-pub struct FaceletModel(pub [Face; TOTAL_STICKERS]);
+pub struct FaceletModel(pub [Face; 54]);
 
 impl FaceletModel {
     pub fn new() -> Self {
         let v: Vec<Face> = ORDERED_FACES
             .iter()
-            .flat_map(|&face| [face; STICKERS_PER_FACE])
+            .flat_map(|&face| [face; 9])
             .collect();
         Self(v.try_into().unwrap())
     }
