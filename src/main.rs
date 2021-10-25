@@ -10,13 +10,14 @@ const F_DEPTH: f32 = 0.; // thickness/depth of each facelet
 async fn main() {
     let mut gcube = GCube::new(3);
     let mut size_f = gcube.size as f32;
-    let mut is_stickered = false;
+    let mut is_stickered = true;
     let mut camera = Camera3D {
-        position: vec3(0., size_f * 3.5, size_f * 4.),
+        position: vec3(0., size_f * 3.5, size_f * 5.),
         up: vec3(0., 1., 0.),
         target: vec3(0., 0., 0.),
         ..Default::default()
     };
+    let desu_gray = Color::new(35. / 255., 39. / 255., 42. / 255., 1.);
 
     loop {
         if let Some(key) = get_last_key_pressed() {
@@ -42,37 +43,48 @@ async fn main() {
         }
         set_camera(&camera);
 
-        clear_background(GRAY);
+        clear_background(desu_gray);
         for sticker in gcube.stickers.iter() {
-            let mut curr = point3_to_vec3(sticker.current);
+            let curr = point3_to_vec3(sticker.current);
             draw_cube(
                 curr,
                 face_to_dimensions(gcube.get_curr_face(*sticker)),
                 None,
                 face_to_color(gcube.get_initial_face(*sticker)),
             );
-            if curr.x.abs() == size_f { curr.x *= 2. }
-            else if curr.y.abs() == size_f { curr.y *= 2. }
-            else { curr.z *= 2. }
-            draw_cube(
-                curr,
-                face_to_dimensions(gcube.get_curr_face(*sticker)),
-                None,
-                face_to_color(gcube.get_initial_face(*sticker)),
-            );
+            let mut mirr = curr;
+            if mirr.x.abs() == size_f { mirr.x *= 2.4 }
+            else if mirr.y.abs() == size_f { mirr.y *= 2.4 }
+            else { mirr.z *= 2.4 }
+            // only draw the inside face of the mirrored facelet
+            let mirr_vec = curr - mirr;
+            if (mirr - camera.position).dot(mirr_vec) < 0. {
+                draw_cube(
+                    mirr,
+                    face_to_dimensions(gcube.get_curr_face(*sticker)),
+                    None,
+                    face_to_color(gcube.get_initial_face(*sticker)),
+                );
+            }
         }
         if is_stickered {
-            let scale = if size_f > 20. { 1.96 } else { 1.99 };
+            let scale = if size_f > 20. { 1.96 } else { 1.98 };
             draw_cube(vec3(0., 0., 0.), 
                 vec3(size_f * scale, size_f * scale, size_f * scale), 
                 None, 
-                DARKGRAY);
+                desu_gray);
         }
         next_frame().await
     }
 }
 
-// returns facelet dimensions/orientation for a specific face
+// returns the 3 closest faces on a cube to a Vec3
+// fn closest_faces(p: Vec3) -> [Face; 3] {
+//     let face_centers = vec![
+//         // vec3(0.0)
+//     ];
+// }
+
 fn face_to_dimensions(face: Face) -> Vec3 {
     match face {
         Face::U | Face::D => vec3(F_LEN, F_DEPTH, F_LEN),
