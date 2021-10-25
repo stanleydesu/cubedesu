@@ -11,6 +11,7 @@ async fn main() {
     let mut gcube = GCube::new(3);
     let mut size_f = gcube.size as f32;
     let mut is_stickered = true;
+    let mut has_mirrors = true;
     let mut camera = Camera3D {
         position: vec3(0., size_f * 3.5, size_f * 5.),
         up: vec3(0., 1., 0.),
@@ -24,6 +25,7 @@ async fn main() {
             if key == KeyCode::Minus { gcube.shrink() } 
             else if key == KeyCode::Equal { gcube.grow() }
             else if key == KeyCode::Key1 { is_stickered = !is_stickered }
+            else if key == KeyCode::Key2 { has_mirrors = !has_mirrors }
             else if let Some(movement) = key_to_movement(key) {
                 gcube.apply_movement(&movement);
             }
@@ -52,6 +54,7 @@ async fn main() {
                 None,
                 face_to_color(gcube.get_initial_face(*sticker)),
             );
+            if !has_mirrors { continue }
             let mut mirr = curr;
             if mirr.x.abs() == size_f { mirr.x *= 2.4 }
             else if mirr.y.abs() == size_f { mirr.y *= 2.4 }
