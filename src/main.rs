@@ -4,7 +4,7 @@ use cubedesu::*;
 use macroquad::{input::KeyCode, math::Quat, prelude::*};
 
 const F_LEN: f32 = 1.8; // side length of each facelet
-const F_DEPTH: f32 = 0.00; // thickness/depth of each facelet
+const F_DEPTH: f32 = 0.; // thickness/depth of each facelet
 
 #[macroquad::main("cubedesu")]
 async fn main() {
@@ -49,6 +49,8 @@ async fn main() {
                 face_to_color(gcube.get_initial_face(*sticker)),
             );
         }
+        let cube_len = size_f * 2.;
+        draw_cube(vec3(0., 0., 0.), vec3(cube_len * 0.99, cube_len * 0.99, cube_len * 0.99), None, BLACK);
         next_frame().await
     }
 }
