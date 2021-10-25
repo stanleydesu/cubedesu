@@ -31,11 +31,11 @@ async fn main() {
                 size_f = gcube.size as f32;
             }
         }
+        if is_key_down(KeyCode::Up) { camera.position.y += size_f / 7.; }
+        if is_key_down(KeyCode::Down) { camera.position.y -= size_f / 7.; }
         let mut angle = 0.0;
         if is_key_down(KeyCode::Left) { angle = 0.05; }
         if is_key_down(KeyCode::Right) { angle = -0.05; }
-        if is_key_down(KeyCode::Up) { camera.position.y += size_f / 7.; }
-        if is_key_down(KeyCode::Down) { camera.position.y -= size_f / 7.; }
         camera.position.y = clamp(camera.position.y, size_f * -3.5, size_f * 3.5);
         if angle != 0.0 {
             camera.position = Quat::from_rotation_y(angle).mul_vec3(camera.position);
@@ -44,8 +44,18 @@ async fn main() {
 
         clear_background(GRAY);
         for sticker in gcube.stickers.iter() {
+            let mut curr = point3_to_vec3(sticker.current);
             draw_cube(
-                point3_to_vec3(sticker.current),
+                curr,
+                face_to_dimensions(gcube.get_curr_face(*sticker)),
+                None,
+                face_to_color(gcube.get_initial_face(*sticker)),
+            );
+            if curr.x.abs() == size_f { curr.x *= 2. }
+            else if curr.y.abs() == size_f { curr.y *= 2. }
+            else { curr.z *= 2. }
+            draw_cube(
+                curr,
                 face_to_dimensions(gcube.get_curr_face(*sticker)),
                 None,
                 face_to_color(gcube.get_initial_face(*sticker)),
@@ -56,7 +66,7 @@ async fn main() {
             draw_cube(vec3(0., 0., 0.), 
                 vec3(size_f * scale, size_f * scale, size_f * scale), 
                 None, 
-                BLACK);
+                DARKGRAY);
         }
         next_frame().await
     }
