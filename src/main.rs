@@ -10,7 +10,6 @@ const F_DEPTH: f32 = 0.; // thickness/depth of each facelet
 async fn main() {
     let mut gcube = GCube::new(3);
     let mut size_f = gcube.size as f32;
-    let mut is_stickered = true;
     let mut has_mirrors = true;
     let mut camera = Camera3D {
         position: vec3(0., size_f * 3.5, size_f * 5.),
@@ -24,8 +23,7 @@ async fn main() {
         if let Some(key) = get_last_key_pressed() {
             if key == KeyCode::Minus { gcube.shrink() } 
             else if key == KeyCode::Equal { gcube.grow() }
-            else if key == KeyCode::Key1 { is_stickered = !is_stickered }
-            else if key == KeyCode::Key2 { has_mirrors = !has_mirrors }
+            else if key == KeyCode::Key1 { has_mirrors = !has_mirrors }
             else if let Some(movement) = key_to_movement(key) {
                 gcube.apply_movement(&movement);
             }
@@ -71,13 +69,11 @@ async fn main() {
                 face_to_color(gcube.get_initial_face(*sticker)),
             );
         }
-        if is_stickered {
-            let scale = if gcube.size >= 14 { 1.96 } else { 1.99 };
-            draw_cube(vec3(0., 0., 0.), 
-                vec3(size_f * scale, size_f * scale, size_f * scale), 
-                None, 
-                BLACK);
-        }
+        let scale = if gcube.size >= 14 { 1.96 } else { 1.99 };
+        draw_cube(vec3(0., 0., 0.), 
+            vec3(size_f * scale, size_f * scale, size_f * scale), 
+            None, 
+            desu_gray);
         next_frame().await
     }
 }
