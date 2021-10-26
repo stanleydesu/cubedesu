@@ -48,34 +48,35 @@ async fn main() {
         clear_background(desu_gray);
         for sticker in gcube.stickers.iter() {
             let curr = point3_to_vec3(sticker.current);
-            draw_cube(
-                curr,
-                face_to_dimensions(gcube.get_curr_face(*sticker)),
-                None,
-                face_to_color(gcube.get_initial_face(*sticker)),
-            );
-            if !has_mirrors { continue }
             let mut mirr = curr;
             if mirr.x.abs() == size_f { mirr.x *= 2.4 }
             else if mirr.y.abs() == size_f { mirr.y *= 2.4 }
             else { mirr.z *= 2.4 }
-            // only draw the inside face of the mirrored facelet
             let mirr_vec = curr - mirr;
-            if (mirr - camera.position).dot(mirr_vec) < 0. {
+            // only render the sticker if it's visible
+            if (curr - camera.position).dot(mirr_vec) > 0. {
                 draw_cube(
-                    mirr,
+                    curr,
                     face_to_dimensions(gcube.get_curr_face(*sticker)),
                     None,
                     face_to_color(gcube.get_initial_face(*sticker)),
                 );
             }
+            // only draw the mirror's side that's closer to the cube 
+            if !has_mirrors || (mirr - camera.position).dot(mirr_vec) > 0. { continue }
+            draw_cube(
+                mirr,
+                face_to_dimensions(gcube.get_curr_face(*sticker)),
+                None,
+                face_to_color(gcube.get_initial_face(*sticker)),
+            );
         }
         if is_stickered {
-            let scale = if size_f > 20. { 1.96 } else { 1.98 };
+            let scale = if gcube.size >= 14 { 1.96 } else { 1.99 };
             draw_cube(vec3(0., 0., 0.), 
                 vec3(size_f * scale, size_f * scale, size_f * scale), 
                 None, 
-                desu_gray);
+                BLACK);
         }
         next_frame().await
     }
