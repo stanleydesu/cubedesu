@@ -3,7 +3,7 @@
 Rubik's Cube simulator written in Rust
 
 ## Features
-- Visual simulation of a 3x3 cube, allowing moves with [keyboard input](./keymap.png)
+- Simulation of an arbitrarily sized NxNxN Rubik's Cube, allowing moves with [keyboard input](./keymap.png)
 
 ![Cube](./cubedesu.gif)
 
